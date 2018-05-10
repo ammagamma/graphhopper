@@ -57,7 +57,7 @@ public class Path4CH extends PathBidirRef {
 
     private void expandSkippedEdges(int skippedEdge1, int skippedEdge2, int from, int to, boolean reverse) {
         // get properties like speed of the edge in the correct direction
-        if (reverse) {
+        if (reverse == reverseOrder) {
             int tmp = from;
             from = to;
             to = tmp;
@@ -65,17 +65,15 @@ public class Path4CH extends PathBidirRef {
 
         // getEdgeProps could possibly return an empty edge if the shortcut is available for both directions
         if (reverseOrder) {
-            doExpandEdge(skippedEdge1, skippedEdge2, from, to, false);
+            doExpandEdge(skippedEdge1, skippedEdge2, from, to, !reverseOrder);
         } else {
-            doExpandEdge(skippedEdge1, skippedEdge2, to, from, true);
+            doExpandEdge(skippedEdge1, skippedEdge2, from, to, reverseOrder);
         }
     }
 
     private void doExpandEdge(int skippedEdge1, int skippedEdge2, int from, int to, boolean b) {
         CHEdgeIteratorState edgeState = getEdge(skippedEdge1, to);
-        boolean empty = edgeState == null;
-
-        if (empty) {
+        if (edgeState == null) {
             expandEdge(getEdge(skippedEdge2, to), b);
             expandEdge(getEdge(skippedEdge1, from), !b);
         } else {
