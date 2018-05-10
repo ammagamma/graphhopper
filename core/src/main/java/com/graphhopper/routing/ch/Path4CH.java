@@ -57,16 +57,16 @@ public class Path4CH extends PathBidirRef {
 
     private void expandSkippedEdges(int skippedEdge1, int skippedEdge2, int from, int to, boolean reverse) {
         // get properties like speed of the edge in the correct direction
-        if (reverse == reverseOrder) {
+        if (reverseOrder == reverse) {
             int tmp = from;
             from = to;
             to = tmp;
         }
 
         // getEdgeProps could possibly return an empty edge if the shortcut is available for both directions
-        CHEdgeIteratorState edgeState = getEdge(skippedEdge1, to);
-        if (edgeState == null) {
-            expandEdge(getEdge(skippedEdge2, to), !reverseOrder);
+        CHEdgeIteratorState sk2to = getEdge(skippedEdge2, to);
+        if (sk2to != null) {
+            expandEdge(sk2to, !reverseOrder);
             expandEdge(getEdge(skippedEdge1, from), reverseOrder);
         } else {
             expandEdge(getEdge(skippedEdge1, to), !reverseOrder);
@@ -74,7 +74,7 @@ public class Path4CH extends PathBidirRef {
         }
     }
 
-    private CHEdgeIteratorState getEdge(int skippedEdge2, int to) {
-        return (CHEdgeIteratorState) routingGraph.getEdgeIteratorState(skippedEdge2, to);
+    private CHEdgeIteratorState getEdge(int edgeId, int adjNode) {
+        return (CHEdgeIteratorState) routingGraph.getEdgeIteratorState(edgeId, adjNode);
     }
 }
