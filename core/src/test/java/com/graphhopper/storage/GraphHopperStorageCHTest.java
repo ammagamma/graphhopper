@@ -44,12 +44,21 @@ public class GraphHopperStorageCHTest extends GraphHopperStorageTest {
 
     @Override
     public GraphHopperStorage newGHStorage(Directory dir, boolean is3D) {
-        return new GraphHopperStorage(Arrays.asList(new FastestWeighting(carEncoder)), dir, encodingManager, is3D, new GraphExtension.NoOpExtension());
+        return newGHStorage(dir, is3D, false);
+    }
+
+    private GraphHopperStorage newGHStorage(boolean is3D, boolean forEdgeBasedTraversal) {
+        return newGHStorage(new RAMDirectory(defaultGraphLoc, true), is3D, forEdgeBasedTraversal).create(defaultSize);
+    }
+
+    private GraphHopperStorage newGHStorage(Directory dir, boolean is3D, boolean forEdgeBasedTraversal) {
+        return new GraphHopperStorage(Arrays.asList(new FastestWeighting(carEncoder)), dir, encodingManager, is3D,
+                forEdgeBasedTraversal, new GraphExtension.NoOpExtension());
     }
 
     @Test
     public void testCannotBeLoadedWithNormalGraphHopperStorageClass() {
-        graph = newGHStorage(new RAMDirectory(defaultGraphLoc, true), false).create(defaultSize);
+        graph = newGHStorage(false, false);
         graph.flush();
         graph.close();
 
@@ -280,8 +289,7 @@ public class GraphHopperStorageCHTest extends GraphHopperStorageTest {
         graph.close();
 
         // test freeze and shortcut creation & loading
-        graph = newGHStorage(new RAMDirectory(defaultGraphLoc, true), true).
-                create(defaultSize);
+        graph = newGHStorage(true, false);
         graph.edge(1, 0);
         graph.edge(8, 9);
         graph.freeze();
@@ -382,6 +390,39 @@ public class GraphHopperStorageCHTest extends GraphHopperStorageTest {
         assertTrue(iter.isShortcut());
         assertEquals(edge1.getEdge(), iter.getSkippedEdge1());
         assertEquals(edge2.getEdge(), iter.getSkippedEdge2());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testAddShortcut_edgeBased_throwsIfNotConfiguredForEdgeBased() {
+        graph = newGHStorage(false, false);
+        graph.edge(0, 1, 1, false);
+        graph.edge(1, 2, 1, false);
+        graph.freeze();
+        addShortcut(getGraph(graph), 0, 2, true, 0, 1, 0, 1, 2);
+    }
+
+    @Test
+    public void testAddShortcut_edgeBased() {
+        // 0 -> 1 -> 2
+        graph = newGHStorage(false, true);
+        graph.edge(0, 1, 1, false);
+        graph.edge(1, 2, 3, false);
+        graph.freeze();
+        CHGraph lg = getGraph(this.graph);
+        addShortcut(lg, 0, 2, true, 0, 1, 0, 1, 4);
+        AllCHEdgesIterator iter = lg.getAllEdges();
+        iter.next();
+        iter.next();
+        iter.next();
+        assertEquals(0, iter.getFirstOrigEdge());
+        assertEquals(1, iter.getLastOrigEdge());
+    }
+
+    private void addShortcut(CHGraph chGraph, int from, int to, boolean fwd, int firstOrigEdge, int lastOrigEdge,
+                             int skipEdge1, int skipEdge2, int distance) {
+        CHEdgeIteratorState shortcut = chGraph.shortcut(from, to);
+        shortcut.setFlags(fwd ? PrepareEncoder.getScFwdDir() : PrepareEncoder.getScBwdDir());
+        shortcut.setOuterOrigEdges(firstOrigEdge, lastOrigEdge).setSkippedEdges(skipEdge1, skipEdge2).setDistance(distance);
     }
 
     @Test

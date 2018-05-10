@@ -27,13 +27,12 @@ import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.search.NameIndex;
 import com.graphhopper.util.*;
 import com.graphhopper.util.shapes.BBox;
-
-import static com.graphhopper.util.Helper.nf;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
+
+import static com.graphhopper.util.Helper.nf;
 
 /**
  * The base graph handles nodes and edges file format. It can be used with different Directory
@@ -1198,6 +1197,16 @@ class BaseGraph implements Graph {
         @Override
         public int getEdge() {
             return edgeId;
+        }
+
+        @Override
+        public int getFirstOrigEdge() {
+            return getEdge();
+        }
+
+        @Override
+        public int getLastOrigEdge() {
+            return getEdge();
         }
 
         @Override
