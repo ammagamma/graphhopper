@@ -18,7 +18,6 @@
 package com.graphhopper.routing.ch;
 
 import com.graphhopper.routing.PathBidirRef;
-import com.graphhopper.routing.util.FlagEncoder;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.util.CHEdgeIteratorState;
@@ -46,18 +45,18 @@ public class Path4CH extends PathBidirRef {
         expandEdge(getEdge(tmpEdge, endNode), false);
     }
 
-    private void expandEdge(CHEdgeIteratorState mainEdgeState, boolean reverse) {
-        if (!mainEdgeState.isShortcut()) {
-            distance += mainEdgeState.getDistance();
-            time += weighting.calcMillis(mainEdgeState, reverse, EdgeIterator.NO_EDGE);
-            addEdge(mainEdgeState.getEdge());
+    private void expandEdge(CHEdgeIteratorState edge, boolean reverse) {
+        if (!edge.isShortcut()) {
+            distance += edge.getDistance();
+            time += weighting.calcMillis(edge, reverse, EdgeIterator.NO_EDGE);
+            addEdge(edge.getEdge());
             return;
         }
 
-        int skippedEdge1 = mainEdgeState.getSkippedEdge1();
-        int skippedEdge2 = mainEdgeState.getSkippedEdge2();
-        int from = mainEdgeState.getBaseNode(), to = mainEdgeState.getAdjNode();
+        expandSkippedEdges(edge.getSkippedEdge1(), edge.getSkippedEdge2(), edge.getBaseNode(), edge.getAdjNode(), reverse);
+    }
 
+    private void expandSkippedEdges(int skippedEdge1, int skippedEdge2, int from, int to, boolean reverse) {
         // get properties like speed of the edge in the correct direction
         if (reverse) {
             int tmp = from;
@@ -81,19 +80,19 @@ public class Path4CH extends PathBidirRef {
 
             expandEdge(edgeState, true);
         } else {
-            CHEdgeIteratorState iter = getEdge(skippedEdge1, from);
-            boolean empty = iter == null;
+            CHEdgeIteratorState edgeState = getEdge(skippedEdge1, from);
+            boolean empty = edgeState == null;
             if (empty)
-                iter = getEdge(skippedEdge2, from);
+                edgeState = getEdge(skippedEdge2, from);
 
-            expandEdge(iter, true);
+            expandEdge(edgeState, true);
 
             if (empty)
-                iter = getEdge(skippedEdge1, to);
+                edgeState = getEdge(skippedEdge1, to);
             else
-                iter = getEdge(skippedEdge2, to);
+                edgeState = getEdge(skippedEdge2, to);
 
-            expandEdge(iter, false);
+            expandEdge(edgeState, false);
         }
     }
 
