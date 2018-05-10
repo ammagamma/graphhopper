@@ -64,11 +64,7 @@ public class Path4CH extends PathBidirRef {
         }
 
         // getEdgeProps could possibly return an empty edge if the shortcut is available for both directions
-        if (reverseOrder) {
-            doExpandEdge(skippedEdge1, skippedEdge2, from, to, !reverseOrder);
-        } else {
-            doExpandEdge(skippedEdge1, skippedEdge2, from, to, reverseOrder);
-        }
+        doExpandEdge(skippedEdge1, skippedEdge2, from, to, !reverseOrder);
     }
 
     private void doExpandEdge(int skippedEdge1, int skippedEdge2, int from, int to, boolean b) {
