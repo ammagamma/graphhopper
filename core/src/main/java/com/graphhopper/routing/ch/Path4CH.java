@@ -39,10 +39,10 @@ public class Path4CH extends PathBidirRef {
     }
 
     @Override
-    protected final void processEdge(int tmpEdge, int endNode, int prevEdgeId) {
+    protected final void processEdge(int edgeId, int endNode, int prevEdgeId) {
         // Shortcuts do only contain valid weight so first expand before adding
         // to distance and time
-        expandEdge(getEdge(tmpEdge, endNode), false);
+        expandEdge(getEdge(edgeId, endNode), false);
     }
 
     private void expandEdge(CHEdgeIteratorState edge, boolean reverse) {
@@ -52,7 +52,6 @@ public class Path4CH extends PathBidirRef {
             addEdge(edge.getEdge());
             return;
         }
-
         expandSkippedEdges(edge.getSkippedEdge1(), edge.getSkippedEdge2(), edge.getBaseNode(), edge.getAdjNode(), reverse);
     }
 
@@ -66,34 +65,26 @@ public class Path4CH extends PathBidirRef {
 
         // getEdgeProps could possibly return an empty edge if the shortcut is available for both directions
         if (reverseOrder) {
-            CHEdgeIteratorState edgeState = getEdge(skippedEdge1, to);
-            boolean empty = edgeState == null;
-            if (empty)
-                edgeState = getEdge(skippedEdge2, to);
-
-            expandEdge(edgeState, false);
-
-            if (empty)
-                edgeState = getEdge(skippedEdge1, from);
-            else
-                edgeState = getEdge(skippedEdge2, from);
-
-            expandEdge(edgeState, true);
+            doExpandEdge(skippedEdge1, skippedEdge2, from, to, false);
         } else {
-            CHEdgeIteratorState edgeState = getEdge(skippedEdge1, from);
-            boolean empty = edgeState == null;
-            if (empty)
-                edgeState = getEdge(skippedEdge2, from);
-
-            expandEdge(edgeState, true);
-
-            if (empty)
-                edgeState = getEdge(skippedEdge1, to);
-            else
-                edgeState = getEdge(skippedEdge2, to);
-
-            expandEdge(edgeState, false);
+            doExpandEdge(skippedEdge1, skippedEdge2, to, from, true);
         }
+    }
+
+    private void doExpandEdge(int skippedEdge1, int skippedEdge2, int from, int to, boolean b) {
+        CHEdgeIteratorState edgeState = getEdge(skippedEdge1, to);
+        boolean empty = edgeState == null;
+        if (empty)
+            edgeState = getEdge(skippedEdge2, to);
+
+        expandEdge(edgeState, b);
+
+        if (empty)
+            edgeState = getEdge(skippedEdge1, from);
+        else
+            edgeState = getEdge(skippedEdge2, from);
+
+        expandEdge(edgeState, !b);
     }
 
     private CHEdgeIteratorState getEdge(int skippedEdge2, int to) {
