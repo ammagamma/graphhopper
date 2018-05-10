@@ -67,7 +67,7 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
 
     protected abstract SPTEntry createStartEntry(int node, double weight, boolean reverse);
 
-    protected abstract SPTEntry createEntry(EdgeIteratorState edge, double weight, SPTEntry parent, boolean reverse);
+    protected abstract SPTEntry createEntry(EdgeIteratorState edge, int edgeId, double weight, SPTEntry parent, boolean reverse);
 
     @Override
     public Path calcPath(int from, int to) {
@@ -190,12 +190,12 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
                 continue;
             SPTEntry entry = bestWeightMap.get(traversalId);
             if (entry == null) {
-                entry = createEntry(iter, weight, currEdge, reverse);
+                entry = createEntry(iter, origEdgeId, weight, currEdge, reverse);
                 bestWeightMap.put(traversalId, entry);
                 prioQueue.add(entry);
             } else if (entry.getWeightOfVisitedPath() > weight) {
                 prioQueue.remove(entry);
-                updateEntry(entry, iter, weight, currEdge, reverse);
+                updateEntry(entry, iter, origEdgeId, weight, currEdge, reverse);
                 prioQueue.add(entry);
             } else
                 continue;
@@ -233,7 +233,7 @@ public abstract class AbstractBidirAlgo extends AbstractRoutingAlgorithm {
         }
     }
 
-    protected void updateEntry(SPTEntry entry, EdgeIteratorState edge, double weight, SPTEntry parent, boolean reverse) {
+    protected void updateEntry(SPTEntry entry, EdgeIteratorState edge, int edgeId, double weight, SPTEntry parent, boolean reverse) {
         entry.edge = edge.getEdge();
         entry.weight = weight;
         entry.parent = parent;
