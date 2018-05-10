@@ -74,17 +74,14 @@ public class Path4CH extends PathBidirRef {
     private void doExpandEdge(int skippedEdge1, int skippedEdge2, int from, int to, boolean b) {
         CHEdgeIteratorState edgeState = getEdge(skippedEdge1, to);
         boolean empty = edgeState == null;
-        if (empty)
-            edgeState = getEdge(skippedEdge2, to);
 
-        expandEdge(edgeState, b);
-
-        if (empty)
-            edgeState = getEdge(skippedEdge1, from);
-        else
-            edgeState = getEdge(skippedEdge2, from);
-
-        expandEdge(edgeState, !b);
+        if (empty) {
+            expandEdge(getEdge(skippedEdge2, to), b);
+            expandEdge(getEdge(skippedEdge1, from), !b);
+        } else {
+            expandEdge(getEdge(skippedEdge1, to), b);
+            expandEdge(getEdge(skippedEdge2, from), !b);
+        }
     }
 
     private CHEdgeIteratorState getEdge(int skippedEdge2, int to) {
