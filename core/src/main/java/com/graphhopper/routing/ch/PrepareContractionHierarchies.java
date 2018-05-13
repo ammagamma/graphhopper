@@ -198,13 +198,13 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
 
     private AbstractBidirAlgo doCreateAlgo(Graph graph, AlgorithmOptions opts) {
         if (ASTAR_BI.equals(opts.getAlgorithm())) {
-            return new AStarBidirectionCH(graph, prepareWeighting, traversalMode)
+            return new AStarBidirectionCH(graph, prepareWeighting)
                     .setApproximation(RoutingAlgorithmFactorySimple.getApproximation(ASTAR_BI, opts, graph.getNodeAccess()));
         } else if (DIJKSTRA_BI.equals(opts.getAlgorithm())) {
             if (opts.getHints().getBool("stall_on_demand", true)) {
-                return new DijkstraBidirectionCH(graph, prepareWeighting, traversalMode);
+                return new DijkstraBidirectionCH(graph, prepareWeighting);
             } else {
-                return new DijkstraBidirectionCHNoSOD(graph, prepareWeighting, traversalMode);
+                return new DijkstraBidirectionCHNoSOD(graph, prepareWeighting);
             }
         } else {
             throw new IllegalArgumentException("Algorithm " + opts.getAlgorithm() + " not supported for Contraction Hierarchies. Try with ch.disable=true");
