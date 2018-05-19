@@ -29,7 +29,7 @@ import com.graphhopper.storage.GraphHopperStorage;
 import com.graphhopper.util.CHEdgeExplorer;
 
 abstract class AbstractNodeContractor implements NodeContractor {
-    private final GraphHopperStorage ghStorage;
+    final GraphHopperStorage ghStorage;
     final CHGraph prepareGraph;
     final FlagEncoder encoder;
     CHEdgeExplorer inEdgeExplorer;
