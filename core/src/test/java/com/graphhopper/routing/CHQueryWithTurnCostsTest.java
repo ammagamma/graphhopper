@@ -433,6 +433,50 @@ public class CHQueryWithTurnCostsTest {
     }
 
     @Test
+    public void testFindPath_singleLoopInFwdSearch() {
+        runTestWithSingleLoop(true);
+    }
+
+    @Test
+    public void testFindPath_singleLoopInBwdSearch() {
+        runTestWithSingleLoop(false);
+    }
+
+    private void runTestWithSingleLoop(boolean loopInFwdSearch) {
+        // because we set the node levels equal to the node ids, depending on the size relation between node A and B
+        // either the fwd search or the bwd search will explore the loop at node 5.
+        // in any case it is important that the fwd/bwd search unpacks the loop shortcut at node 5 correctly
+        int nodeA = 0;
+        int nodeB = 6;
+        if (!loopInFwdSearch) {
+            int tmp = nodeA;
+            nodeA = nodeB;
+            nodeB = tmp;
+        }
+        //  4 1<-3
+        //  | |  |
+        //  A-5->2
+        //    |
+        //    B-7
+        graph.edge(4, nodeA, 1, false);
+        graph.edge(nodeA, 5, 2, false);
+        graph.edge(5, 2, 2, false);
+        graph.edge(2, 3, 1, false);
+        graph.edge(3, 1, 2, false);
+        graph.edge(1, 5, 1, false);
+        graph.edge(5, nodeB, 1, false);
+        graph.edge(nodeB, 7, 2, false);
+        addRestriction(nodeA, 5, nodeB);
+        graph.freeze();
+        addShortcut(3, 5, 4, 5, 4, 5, 3);
+        addShortcut(5, 3, 2, 3, 2, 3, 3);
+        addShortcut(5, 5, 2, 5, 9, 8, 6);
+        setLevelEqualToNodeIdForAllNodes();
+
+        testPathCalculation(4, 7, 12, Helper.createTList(4, nodeA, 5, 2, 3, 1, 5, nodeB, 7));
+    }
+
+    @Test
     public void testFindPathWithTurnRestriction_double_loop() {
         //   1
         //   |\  at 6 we can only take the next left turn (can not skip a turn or go right)
