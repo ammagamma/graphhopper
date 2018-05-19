@@ -1176,6 +1176,31 @@ public class EdgeBasedNodeContractorTest {
     }
 
     @Test
+    @Ignore("note sure how to handle zero distance loops, see #1355")
+    public void testNodeContraction_zeroWeightLoops() {
+        // sometimes OSM data contains loop edges with zero weight...
+        // 0 <- 1 -> 4
+        //      ^    v
+        //      3 <- 5
+        graph.edge(4, 5, 29, false);
+        graph.edge(5, 3, 21, false);
+        graph.edge(3, 1, 91, false);
+        graph.edge(1, 0, 38, false);
+        graph.edge(1, 4, 80, false);
+        // add two loop edges with zero weight
+        graph.edge(1, 1, 0, false);
+        graph.edge(1, 1, 0, false);
+        graph.freeze();
+        setMaxLevelOnAllNodes();
+        contractNodes(3);
+        // this test fails for aggressive search and this is rather difficult to fix, its probably a better idea
+        // to remove zero weight loops when parsing the original data already, see #1355
+        checkShortcuts(
+                createShortcut(5, 1, 1, 2, 1, 2, 112)
+        );
+    }
+
+    @Test
     public void testNodeContraction_numPolledEdges() {
         graph.edge(3, 2, 71.203000, false);
         graph.edge(0, 3, 79.003000, false);

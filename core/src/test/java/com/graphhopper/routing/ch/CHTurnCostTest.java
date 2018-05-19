@@ -31,6 +31,7 @@ import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.*;
 import com.graphhopper.util.*;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -654,6 +655,22 @@ public class CHTurnCostTest {
         GHUtility.addRandomTurnCosts(graph, seed, encoder, maxCost, turnCostExtension);
         graph.freeze();
         automaticCompareCHWithDijkstra(100);
+    }
+
+    @Test
+    @Ignore("not sure how to handle zero distance loops yet, c.f. #1355")
+    public void testFindPath_compareWithDijkstra_zeroWeightLoops() {
+        graph.edge(5, 3, 21.329000, false);
+        graph.edge(4, 5, 29.126000, false);
+        graph.edge(1, 0, 38.865000, false);
+        graph.edge(1, 4, 80.005000, false);
+        graph.edge(3, 1, 91.023000, false);
+        // add loops with zero weight ...
+        graph.edge(1, 1, 0.000000, false);
+        graph.edge(1, 1, 0.000000, false);
+        // aggressive search cannot handle such zero weight loops, they should probably be filtered out 
+        graph.freeze();
+        compareCHWithDijkstra(100, Arrays.asList(0, 3, 1, 4, 5, 2));
     }
 
     private int nextCost(Random rnd) {
