@@ -758,7 +758,8 @@ public class GraphHopper implements GraphHopperAPI {
 
         if (chFactoryDecorator.isEnabled()) {
             initCHAlgoFactoryDecorator();
-            ghStorage = new GraphHopperStorage(chFactoryDecorator.getWeightings(), dir, encodingManager, hasElevation(), ext);
+            ghStorage = new GraphHopperStorage(chFactoryDecorator.getWeightings(), dir, encodingManager, hasElevation(),
+                    encodingManager.needsTurnCostsSupport(), ext);
         } else {
             ghStorage = new GraphHopperStorage(dir, encodingManager, hasElevation(), ext);
         }
@@ -1043,7 +1044,6 @@ public class GraphHopper implements GraphHopperAPI {
                     else
                         throw new IllegalStateException("Although CH was enabled a non-CH algorithm factory was returned " + tmpAlgoFactory);
 
-                    tMode = getCHFactoryDecorator().getNodeBase();
                     queryGraph = new QueryGraph(ghStorage.getGraph(CHGraph.class, weighting));
                     queryGraph.lookup(qResults);
                 } else {
@@ -1051,8 +1051,8 @@ public class GraphHopper implements GraphHopperAPI {
                     queryGraph = new QueryGraph(ghStorage);
                     queryGraph.lookup(qResults);
                     weighting = createWeighting(hints, encoder, queryGraph);
-                    ghRsp.addDebugInfo("tmode:" + tMode.toString());
                 }
+                ghRsp.addDebugInfo("tmode:" + tMode.toString());
 
                 int maxVisitedNodesForRequest = hints.getInt(Routing.MAX_VISITED_NODES, maxVisitedNodes);
                 if (maxVisitedNodesForRequest > maxVisitedNodes)

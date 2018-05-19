@@ -22,12 +22,10 @@ import com.graphhopper.routing.RoutingAlgorithmFactoryDecorator;
 import com.graphhopper.routing.util.HintsMap;
 import com.graphhopper.routing.util.TraversalMode;
 import com.graphhopper.routing.weighting.AbstractWeighting;
-import com.graphhopper.routing.weighting.BlockAreaWeighting;
-import com.graphhopper.routing.weighting.GenericWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.*;
 import com.graphhopper.util.CmdArgs;
-import com.graphhopper.util.Helper;
+import com.graphhopper.util.Parameters;
 import com.graphhopper.util.Parameters.CH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +79,7 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
         String chWeightingsStr = args.get(CH.PREPARE + "weightings", "");
 
         if ("no".equals(chWeightingsStr) || "false".equals(chWeightingsStr)) {
-            // default is fastest and we need to clear this explicitely
+            // default is fastest and we need to clear this explicitly
             weightingsAsStrings.clear();
         } else if (!chWeightingsStr.isEmpty()) {
             List<String> tmpCHWeightingList = Arrays.asList(chWeightingsStr.split(","));
@@ -257,10 +255,11 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
 
         String entriesStr = "";
         for (PrepareContractionHierarchies p : preparations) {
-            if (p.getWeighting().matches(map))
+            boolean edgeBased = map.getBool(Parameters.Routing.EDGE_BASED, false);
+            if (p.isEdgeBased() == edgeBased && p.getWeighting().matches(map))
                 return p;
 
-            entriesStr += p.getWeighting() + ", ";
+            entriesStr += p.getWeighting() + "|" + (p.isEdgeBased() ? "edge" : "node") + ", ";
         }
 
         throw new IllegalArgumentException("Cannot find CH RoutingAlgorithmFactory for weighting map " + map + " in entries " + entriesStr);
@@ -315,8 +314,6 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
         if (weightings.isEmpty())
             throw new IllegalStateException("No CH weightings found");
 
-        traversalMode = getNodeBase();
-
         for (Weighting weighting : getWeightings()) {
             PrepareContractionHierarchies tmpPrepareCH = new PrepareContractionHierarchies(
                     new GHDirectory("", DAType.RAM_INT), ghStorage, ghStorage.getGraph(CHGraph.class, weighting),
@@ -328,13 +325,5 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
 
             addPreparation(tmpPrepareCH);
         }
-    }
-
-    /**
-     * For now only node based will work, later on we can easily find usage of this method to remove
-     * it.
-     */
-    public TraversalMode getNodeBase() {
-        return TraversalMode.NODE_BASED;
     }
 }
