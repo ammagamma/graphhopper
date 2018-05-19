@@ -385,6 +385,28 @@ public class CHQueryWithTurnCostsTest {
     }
 
     @Test
+    public void testFindPath_loopIsRecognizedAsIncomingEdge() {
+        //     ---
+        //     \ /
+        // 0 -- 3 -- 2 -- 1
+        EdgeIteratorState edge0 = graph.edge(0, 3, 1, true);
+        EdgeIteratorState edge1 = graph.edge(3, 3, 1, false);
+        EdgeIteratorState edge2 = graph.edge(3, 2, 1, true);
+        EdgeIteratorState edge3 = graph.edge(2, 1, 1, false);
+        addRestriction(edge0, edge2, 3);
+        graph.freeze();
+
+        // contraction yields no shortcuts
+        setLevelEqualToNodeIdForAllNodes();
+
+        // node 3 is the bridge node where both forward and backward searches meet. since there is a turn restriction
+        // at node 3 we cannot go from 0 to 2 directly, but we need to take the loop at 3 first. when the backward 
+        // search arrives at 3 it checks if 3 could be reached by the forward search and therefore its crucial that
+        // the ('forward') loop at 3 is recognized as an incoming edge at node 3
+        testPathCalculation(0, 1, 4, Helper.createTList(0, 3, 3, 2, 1));
+    }
+    
+    @Test
     public void testFindPathWithTurnRestriction_single_loop() {
         //     0
         //     | \
@@ -408,49 +430,6 @@ public class CHQueryWithTurnCostsTest {
         setLevelEqualToNodeIdForAllNodes();
 
         testPathCalculation(3, 2, 15, Helper.createTList(3, 4, 0, 1, 4, 2));
-    }
-
-    @Test
-    public void testFindPath_singleLoopInFwdSearch() {
-        runTestWithSingleLoop(true);
-    }
-
-    @Test
-    public void testFindPath_singleLoopInBwdSearch() {
-        runTestWithSingleLoop(false);
-    }
-
-    private void runTestWithSingleLoop(boolean loopInFwdSearch) {
-        // because we set the node levels equal to the node ids, depending on the size relation between node A and B
-        // either the fwd search or the bwd search will explore the loop at node 5
-        int nodeA = 0;
-        int nodeB = 6;
-        if (!loopInFwdSearch) {
-            int tmp = nodeA;
-            nodeA = nodeB;
-            nodeB = tmp;
-        }
-        //  4 1<-3
-        //  | |  |
-        //  A-5->2
-        //    |
-        //    B-7
-        graph.edge(4, nodeA, 1, false);
-        graph.edge(nodeA, 5, 2, false);
-        graph.edge(5, 2, 2, false);
-        graph.edge(2, 3, 1, false);
-        graph.edge(3, 1, 2, false);
-        graph.edge(1, 5, 1, false);
-        graph.edge(5, nodeB, 1, false);
-        graph.edge(nodeB, 7, 2, false);
-        addRestriction(nodeA, 5, nodeB);
-        graph.freeze();
-        addShortcut(3, 5, 4, 5, 4, 5, 3);
-        addShortcut(5, 3, 2, 3, 2, 3, 3);
-        addShortcut(5, 5, 2, 5, 9, 8, 6);
-        setLevelEqualToNodeIdForAllNodes();
-
-        testPathCalculation(4, 7, 12, Helper.createTList(4, nodeA, 5, 2, 3, 1, 5, nodeB, 7));
     }
 
     @Test

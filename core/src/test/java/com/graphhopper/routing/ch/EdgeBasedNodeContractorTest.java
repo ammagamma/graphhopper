@@ -1136,6 +1136,28 @@ public class EdgeBasedNodeContractorTest {
     }
 
     @Test
+    public void testNodeContraction_forwardLoopNeedsToBeRecognizedAsIncoming() {
+        //     ---
+        //     \ /
+        // 0 -- 1 -- 2 -- 3 -- 4
+        EdgeIteratorState edge0 = graph.edge(0, 1, 1, true);
+        EdgeIteratorState edge1 = graph.edge(1, 1, 1, false);
+        EdgeIteratorState edge2 = graph.edge(1, 2, 1, true);
+        EdgeIteratorState edge3 = graph.edge(2, 3, 1, false);
+        EdgeIteratorState edge4 = graph.edge(3, 4, 1, false);
+        addRestriction(edge0, edge2, 1);
+        graph.freeze();
+        setMaxLevelOnAllNodes();
+        contractNodes(2);
+        checkShortcuts(
+                // we need a shortcut going from 1 to 3, but this is not entirely trivial, because it is crucial that
+                // the loop at node 1 is recognized as an incoming edge at node 1 although it is only 'unidirectional',
+                // i.e. it has only a fwd flag
+                createShortcut(1, 3, edge2, edge3, 2)
+        );
+    }
+    
+    @Test
     @Ignore("this test fails because of shortcut weight truncation in CHGraphImpl")
     public void testNodeContraction_minorWeightDeviation() {
         graph.edge(3, 2, 51.401, false);
