@@ -17,15 +17,15 @@
  */
 package com.graphhopper.routing.ch;
 
+import com.carrotsearch.hppc.IntHashSet;
+import com.carrotsearch.hppc.IntSet;
 import com.graphhopper.coll.GHTreeMapComposed;
 import com.graphhopper.routing.*;
 import com.graphhopper.routing.util.*;
+import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.*;
-import com.graphhopper.util.CHEdgeExplorer;
-import com.graphhopper.util.CHEdgeIterator;
-import com.graphhopper.util.Helper;
-import com.graphhopper.util.StopWatch;
+import com.graphhopper.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,31 +50,31 @@ import static com.graphhopper.util.Parameters.Algorithms.DIJKSTRA_BI;
  * @author Peter Karich
  */
 public class PrepareContractionHierarchies extends AbstractAlgoPreparation implements RoutingAlgorithmFactory {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    final Logger logger = LoggerFactory.getLogger(getClass());
     private final Directory dir;
-    private final PreparationWeighting prepareWeighting;
+    final PreparationWeighting prepareWeighting;
     private final Weighting weighting;
     private final TraversalMode traversalMode;
     private final GraphHopperStorage ghStorage;
-    private final CHGraphImpl prepareGraph;
+    final CHGraphImpl prepareGraph;
     private final Random rand = new Random(123);
     private final StopWatch allSW = new StopWatch();
     private final StopWatch periodicUpdateSW = new StopWatch();
     private final StopWatch lazyUpdateSW = new StopWatch();
     private final StopWatch neighborUpdateSW = new StopWatch();
     private final StopWatch contractionSW = new StopWatch();
-    private NodeContractor nodeContractor;
+    NodeContractor nodeContractor;
     private CHEdgeExplorer vehicleAllExplorer;
     private CHEdgeExplorer vehicleAllTmpExplorer;
-    private int maxLevel;
+    int maxLevel;
     // nodes with highest priority come last
     private GHTreeMapComposed sortedNodes;
     private float oldPriorities[];
     private int periodicUpdatesPercentage = 20;
     private int lastNodesLazyUpdatePercentage = 10;
     private int neighborUpdatePercentage = 20;
-    private double nodesContractedPercentage = 100;
-    private double logMessagesPercentage = 20;
+    double nodesContractedPercentage = 100;
+    double logMessagesPercentage = 20;
     private int initSize;
     private int checkCounter;
 
@@ -197,6 +197,25 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
     }
 
     private AbstractBidirAlgo doCreateAlgo(Graph graph, AlgorithmOptions opts) {
+        if (traversalMode.isEdgeBased()) {
+            return createAlgoEdgeBased(graph, opts);
+        } else {
+            return createAlgoNodeBased(graph, opts);
+        }
+    }
+
+    private AbstractBidirAlgo createAlgoEdgeBased(Graph graph, AlgorithmOptions opts) {
+        if (ASTAR_BI.equals(opts.getAlgorithm())) {
+            return new AStarBidirectionEdgeCHNoSOD(graph, createTurnWeightingForEdgeBased(graph))
+                    .setApproximation(RoutingAlgorithmFactorySimple.getApproximation(ASTAR_BI, opts, graph.getNodeAccess()));
+        } else if (DIJKSTRA_BI.equals(opts.getAlgorithm())) {
+            return new DijkstraBidirectionEdgeCHNoSOD(graph, createTurnWeightingForEdgeBased(graph));
+        } else {
+            throw new IllegalArgumentException("Algorithm " + opts.getAlgorithm() + " not supported for edge-based Contraction Hierarchies. Try with ch.disable=true");
+        }
+    }
+
+    private AbstractBidirAlgo createAlgoNodeBased(Graph graph, AlgorithmOptions opts) {
         if (ASTAR_BI.equals(opts.getAlgorithm())) {
             return new AStarBidirectionCH(graph, prepareWeighting)
                     .setApproximation(RoutingAlgorithmFactorySimple.getApproximation(ASTAR_BI, opts, graph.getNodeAccess()));
@@ -209,6 +228,10 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
         } else {
             throw new IllegalArgumentException("Algorithm " + opts.getAlgorithm() + " not supported for Contraction Hierarchies. Try with ch.disable=true");
         }
+    }
+
+    public boolean isEdgeBased() {
+        return traversalMode.isEdgeBased();
     }
 
     private void initFromGraph() {
@@ -226,7 +249,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
         //   but we need the additional oldPriorities array to keep the old value which is necessary for the update method
         sortedNodes = new GHTreeMapComposed();
         oldPriorities = new float[prepareGraph.getNodes()];
-        nodeContractor = new NodeBasedNodeContractor(dir, ghStorage, prepareGraph, weighting);
+        nodeContractor = createNodeContractor(ghStorage, traversalMode);
         nodeContractor.initFromGraph();
     }
 
@@ -325,6 +348,8 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
                 // skipped nodes are already set to maxLevel
                 break;
 
+            // there might be multiple edges going to the same neighbor nodes -> only calculate priority once per node
+            IntSet updatedNeighors = new IntHashSet(10);
             CHEdgeIterator iter = vehicleAllExplorer.setBaseNode(polledNode);
             while (iter.next()) {
 
@@ -336,13 +361,14 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
                 if (prepareGraph.getLevel(nn) != maxLevel)
                     continue;
 
-                if (neighborUpdate && rand.nextInt(100) < neighborUpdatePercentage) {
+                if (neighborUpdate && !updatedNeighors.contains(nn) && rand.nextInt(100) < neighborUpdatePercentage) {
                     neighborUpdateSW.start();
                     float oldPrio = oldPriorities[nn];
                     float priority = oldPriorities[nn] = calculatePriority(nn);
-                    if (priority != oldPrio)
+                    if (priority != oldPrio) {
                         sortedNodes.update(nn, oldPrio, priority);
-
+                        updatedNeighors.add(nn);
+                    }
                     neighborUpdateSW.stop();
                 }
 
@@ -407,7 +433,28 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
 
     @Override
     public String toString() {
-        return "prepare|dijkstrabi|ch";
+        return traversalMode.isEdgeBased() ? "prepare|dijkstrabi|edge|ch" : "prepare|dijkstrabi|ch";
+    }
+
+    private NodeContractor createNodeContractor(Graph graph, TraversalMode traversalMode) {
+        if (traversalMode.isEdgeBased()) {
+            TurnWeighting chTurnWeighting = createTurnWeightingForEdgeBased(graph);
+            return new EdgeBasedNodeContractor(dir, ghStorage, prepareGraph, chTurnWeighting,
+                    new EdgeBasedNodeContractor.Config());
+        } else {
+            return new NodeBasedNodeContractor(dir, ghStorage, prepareGraph, weighting);
+        }
+    }
+
+    private TurnWeighting createTurnWeightingForEdgeBased(Graph graph) {
+        // important: do not simply take the extension from ghStorage, because we need the wrapped extension from
+        // query graph!
+        GraphExtension extension = graph.getExtension();
+        if (!(extension instanceof TurnCostExtension)) {
+            throw new IllegalArgumentException("For edge-based CH you need a turn cost extension");
+        }
+        TurnCostExtension turnCostExtension = (TurnCostExtension) extension;
+        return new TurnWeighting(new PreparationWeighting(weighting), turnCostExtension);
     }
 
     private void logStats(int updateCounter) {

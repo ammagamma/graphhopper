@@ -45,6 +45,8 @@ import static org.junit.Assert.*;
 /**
  * In this test we mainly test if {@link EdgeBasedNodeContractorTest} inserts the correct shortcuts when certain
  * nodes are contracted.
+ *
+ * @see CHTurnCostTest where node contraction is tested in combination with the routing query
  */
 public class EdgeBasedNodeContractorTest {
     private final int maxCost = 10;
@@ -1156,7 +1158,7 @@ public class EdgeBasedNodeContractorTest {
                 createShortcut(1, 3, edge2, edge3, 2)
         );
     }
-    
+
     @Test
     @Ignore("this test fails because of shortcut weight truncation in CHGraphImpl")
     public void testNodeContraction_minorWeightDeviation() {
