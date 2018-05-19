@@ -44,9 +44,9 @@ import static java.lang.System.nanoTime;
 public class ManualPrepareContractionHierarchies extends PrepareContractionHierarchies {
     private List<Integer> contractionOrder = new ArrayList<>();
 
-    ManualPrepareContractionHierarchies(Directory dir, GraphHopperStorage ghStorage, CHGraph chGraph, Weighting weighting,
-                                        TraversalMode traversalMode) {
-        super(dir, ghStorage, chGraph, weighting, traversalMode);
+    public ManualPrepareContractionHierarchies(Directory dir, GraphHopperStorage ghStorage, CHGraph chGraph, Weighting weighting,
+                                               TraversalMode traversalMode, Config config) {
+        super(dir, ghStorage, chGraph, weighting, traversalMode, config);
     }
 
     ManualPrepareContractionHierarchies setContractionOrder(List<Integer> contractionOrder) {

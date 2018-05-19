@@ -59,6 +59,7 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
     private int preparationNeighborUpdates = -1;
     private int preparationContractedNodes = -1;
     private double preparationLogMessages = -1;
+    private PrepareContractionHierarchies.Config chConfig = new PrepareContractionHierarchies.Config();
 
     public CHAlgoFactoryDecorator() {
         setPreparationThreads(1);
@@ -317,7 +318,7 @@ public class CHAlgoFactoryDecorator implements RoutingAlgorithmFactoryDecorator 
         for (Weighting weighting : getWeightings()) {
             PrepareContractionHierarchies tmpPrepareCH = new PrepareContractionHierarchies(
                     new GHDirectory("", DAType.RAM_INT), ghStorage, ghStorage.getGraph(CHGraph.class, weighting),
-                    weighting, traversalMode);
+                    weighting, traversalMode, chConfig);
             tmpPrepareCH.setPeriodicUpdates(preparationPeriodicUpdates).
                     setLazyUpdates(preparationLazyUpdates).
                     setNeighborUpdates(preparationNeighborUpdates).

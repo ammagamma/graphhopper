@@ -75,16 +75,18 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
     private int neighborUpdatePercentage = 20;
     double nodesContractedPercentage = 100;
     double logMessagesPercentage = 20;
+    private final Config config;
     private int initSize;
     private int checkCounter;
 
     public PrepareContractionHierarchies(Directory dir, GraphHopperStorage ghStorage, CHGraph chGraph,
-                                         Weighting weighting, TraversalMode traversalMode) {
+                                         Weighting weighting, TraversalMode traversalMode, Config config) {
         this.dir = dir;
         this.ghStorage = ghStorage;
         this.prepareGraph = (CHGraphImpl) chGraph;
         this.traversalMode = traversalMode;
         this.weighting = weighting;
+        this.config = config;
         prepareWeighting = new PreparationWeighting(weighting);
     }
 
@@ -226,7 +228,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
                 return new DijkstraBidirectionCHNoSOD(graph, prepareWeighting);
             }
         } else {
-            throw new IllegalArgumentException("Algorithm " + opts.getAlgorithm() + " not supported for Contraction Hierarchies. Try with ch.disable=true");
+            throw new IllegalArgumentException("Algorithm " + opts.getAlgorithm() + " not supported for node-based Contraction Hierarchies. Try with ch.disable=true");
         }
     }
 
@@ -440,7 +442,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
         if (traversalMode.isEdgeBased()) {
             TurnWeighting chTurnWeighting = createTurnWeightingForEdgeBased(graph);
             return new EdgeBasedNodeContractor(dir, ghStorage, prepareGraph, chTurnWeighting,
-                    new EdgeBasedNodeContractor.Config());
+                    config.getEdgeBasedNodeContractorConfig());
         } else {
             return new NodeBasedNodeContractor(dir, ghStorage, prepareGraph, weighting);
         }
@@ -467,5 +469,17 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
                 getTimesAsString(),
                 nodeContractor.getStatisticsString(),
                 Helper.getMemInfo()));
+    }
+
+    public static class Config {
+        private EdgeBasedNodeContractor.Config edgeBasedNodeContractorConfig = new EdgeBasedNodeContractor.Config();
+
+        public EdgeBasedNodeContractor.Config getEdgeBasedNodeContractorConfig() {
+            return edgeBasedNodeContractorConfig;
+        }
+
+        public void setEdgeBasedNodeContractorConfig(EdgeBasedNodeContractor.Config edgeBasedNodeContractorConfig) {
+            this.edgeBasedNodeContractorConfig = edgeBasedNodeContractorConfig;
+        }
     }
 }
