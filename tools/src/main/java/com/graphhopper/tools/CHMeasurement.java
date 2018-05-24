@@ -57,7 +57,7 @@ public class CHMeasurement {
         cmdArgs.put("datareader.file", osmFile);
         int periodicUpdates = cmdArgs.getInt("period_updates", 0);
         int lazyUpdates = cmdArgs.getInt("lazy_updates", 100);
-        int neighborUpdates = cmdArgs.getInt("neighbor_updates", 100);
+        int neighborUpdates = cmdArgs.getInt("neighbor_updates", 0);
         int contractedNodes = cmdArgs.getInt("contract_nodes", 100);
         int logMessages = cmdArgs.getInt("log_messages", 5);
         int landmarks = cmdArgs.getInt("landmarks", 0);
