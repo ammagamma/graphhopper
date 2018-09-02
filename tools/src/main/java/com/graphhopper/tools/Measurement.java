@@ -548,11 +548,17 @@ public class Measurement {
                 CH.PREPARE + "time",
                 CH.PREPARE + "shortcuts",
                 "routing.distance_mean",
-                "routing.mean",
                 "routing.visited_nodes_mean",
                 "routingCH.distance_mean",
-                "routingCH.mean",
                 "routingCH.visited_nodes_mean",
+                "routing.mean",
+                "routingCH.mean",
+                "routingCH_no_instr.mean",
+                "routingCH_no_sod.mean",
+                "routingLM4.mean",
+                "routingLM8.mean",
+                "routingLM12.mean",
+                "routingCHLM5.mean=0.9692540225999999",
                 "measurement.timestamp"
         };
         File f = new File(summaryLocation);
