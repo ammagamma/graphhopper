@@ -190,9 +190,9 @@ public class RealtimeFeed {
             @Override
             public int getNodes() {
                 return IntStream.concat(
-                        IntStream.of(graphHopperStorage.getNodes()-1),
+                        IntStream.of(graphHopperStorage.getNodes() - 1),
                         additionalEdges.stream().flatMapToInt(edge -> IntStream.of(edge.getBaseNode(), edge.getAdjNode())))
-                        .max().getAsInt()+1;
+                        .max().getAsInt() + 1;
             }
 
             @Override

@@ -17,6 +17,7 @@
  */
 package com.graphhopper.routing.util;
 
+import com.carrotsearch.hppc.IntArrayList;
 import com.carrotsearch.hppc.IntHashSet;
 import com.carrotsearch.hppc.IntSet;
 import com.graphhopper.routing.ch.PrepareEncoder;
@@ -51,8 +52,8 @@ public class DefaultEdgeFilterTest {
         graph.freeze();
         // add loop shortcut in 'fwd' direction
         addShortcut(chGraph, 0, 0, true, 0, 2);
-        CHEdgeExplorer outExplorer = chGraph.createEdgeExplorer(new DefaultEdgeFilter(encoder, false, true));
-        CHEdgeExplorer inExplorer = chGraph.createEdgeExplorer(new DefaultEdgeFilter(encoder, true, false));
+        CHEdgeExplorer outExplorer = chGraph.createEdgeExplorer(DefaultEdgeFilter.outEdges(encoder));
+        CHEdgeExplorer inExplorer = chGraph.createEdgeExplorer(DefaultEdgeFilter.inEdges(encoder));
 
         IntSet inEdges = new IntHashSet();
         IntSet outEdges = new IntHashSet();
@@ -65,8 +66,8 @@ public class DefaultEdgeFilterTest {
             inEdges.add(inIter.getEdge());
         }
         // the loop should be accepted by in- and outExplorers
-        assertEquals("Wrong outgoing edges", Helper.createTSet(0, 3), outEdges);
-        assertEquals("Wrong incoming edges", Helper.createTSet(2, 3), inEdges);
+        assertEquals("Wrong outgoing edges", IntHashSet.from(0, 3), outEdges);
+        assertEquals("Wrong incoming edges", IntHashSet.from(2, 3), inEdges);
     }
 
     private void addShortcut(CHGraph chGraph, int from, int to, boolean fwd, int firstOrigEdge, int lastOrigEdge) {

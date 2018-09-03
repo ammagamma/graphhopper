@@ -119,7 +119,8 @@ class MultiCriteriaLabelSetting {
                     GtfsStorage.EdgeType edgeType = flagEncoder.getEdgeType(edge.getFlags());
                     if (edgeType == GtfsStorage.EdgeType.ENTER_PT && reverse && ptOnly) return;
                     if (edgeType == GtfsStorage.EdgeType.EXIT_PT && !reverse && ptOnly) return;
-                    if ((edgeType == GtfsStorage.EdgeType.ENTER_PT || edgeType == GtfsStorage.EdgeType.EXIT_PT) && (blockedRouteTypes & (1 << flagEncoder.getValidityId(edge.getFlags()))) != 0) return;
+                    if ((edgeType == GtfsStorage.EdgeType.ENTER_PT || edgeType == GtfsStorage.EdgeType.EXIT_PT) && (blockedRouteTypes & (1 << flagEncoder.getValidityId(edge.getFlags()))) != 0)
+                        return;
                     long nextTime;
                     if (reverse) {
                         nextTime = label.currentTime - explorer.calcTravelTimeMillis(edge, label.currentTime);

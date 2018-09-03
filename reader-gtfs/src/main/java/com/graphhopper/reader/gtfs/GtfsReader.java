@@ -650,11 +650,11 @@ class GtfsReader {
                 }
                 nodeAccess.setNode(i++, stop.stop_lat, stop.stop_lon);
                 nodeAccess.setAdditionalNodeField(i-1, NodeType.INTERNAL_PT.ordinal());
-                EdgeIteratorState transferEdge = graph.edge(lastTrip.arrivalNode,i-1);
+                EdgeIteratorState transferEdge = graph.edge(lastTrip.arrivalNode, i - 1);
                 transferEdge.setFlags(encoder.setAccess(transferEdge.getFlags(), true, false));
                 setEdgeTypeAndClearDistance(transferEdge, GtfsStorage.EdgeType.TRANSFER);
                 transferEdge.setFlags(encoder.setTime(transferEdge.getFlags(), dwellTime));
-                EdgeIteratorState boardEdge = graph.edge(i-1, departureNode);
+                EdgeIteratorState boardEdge = graph.edge(i - 1, departureNode);
                 boardEdge.setFlags(encoder.setAccess(boardEdge.getFlags(), true, false));
                 setEdgeTypeAndClearDistance(boardEdge, GtfsStorage.EdgeType.BOARD);
                 boardEdge.setFlags(encoder.setValidityId(boardEdge.getFlags(), blockTransferValidityId));

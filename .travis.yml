@@ -54,7 +54,7 @@ after_success:
 
 notifications:
   email:
-    - $EMAIL
+  - $EMAIL
 
 cache:
   directories:

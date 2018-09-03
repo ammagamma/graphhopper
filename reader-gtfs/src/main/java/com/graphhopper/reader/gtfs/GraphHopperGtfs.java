@@ -184,7 +184,7 @@ public final class GraphHopperGtfs implements GraphHopperAPI {
                 final List<Trip.Leg> legs = tripFromLabel.getTrip(translation, graphExplorer, accessEgressWeighting, solution);
                 final PathWrapper pathWrapper = tripFromLabel.createPathWrapper(translation, waypoints, legs);
                 pathWrapper.setImpossible(solution.stream().anyMatch(t -> t.label.impossible));
-                pathWrapper.setTime((solution.get(solution.size()-1).label.currentTime - solution.get(0).label.currentTime));
+                pathWrapper.setTime((solution.get(solution.size() - 1).label.currentTime - solution.get(0).label.currentTime));
                 response.add(pathWrapper);
             }
             Comparator<PathWrapper> c = Comparator.comparingInt(p -> (p.isImpossible() ? 1 : 0));
@@ -235,7 +235,7 @@ public final class GraphHopperGtfs implements GraphHopperAPI {
             while (iterator.hasNext()) {
                 Label label = iterator.next();
                 final long weight = router.weight(label);
-                if ( (!profileQuery || discoveredSolutions.size() >= limitSolutions) && weight + smallestStationLabelWeight > highestWeightForDominationTest) {
+                if ((!profileQuery || discoveredSolutions.size() >= limitSolutions) && weight + smallestStationLabelWeight > highestWeightForDominationTest) {
                     break;
                 }
                 Label reverseLabel = reverseSettledSet.get(label.adjNode);
@@ -247,7 +247,7 @@ public final class GraphHopperGtfs implements GraphHopperAPI {
                             discoveredSolutions.add(combinedSolution);
                             originalSolutions.put(combinedSolution, label);
                             if (profileQuery) {
-                                highestWeightForDominationTest = router.weight(discoveredSolutions.get(discoveredSolutions.size()-1));
+                                highestWeightForDominationTest = router.weight(discoveredSolutions.get(discoveredSolutions.size() - 1));
                             } else {
                                 highestWeightForDominationTest = discoveredSolutions.stream().filter(s -> !s.impossible && (ignoreTransfers || s.nTransfers <= 1)).mapToLong(router::weight).min().orElse(Long.MAX_VALUE);
                             }
