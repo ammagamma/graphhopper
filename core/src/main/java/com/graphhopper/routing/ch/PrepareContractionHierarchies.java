@@ -25,7 +25,10 @@ import com.graphhopper.routing.util.*;
 import com.graphhopper.routing.weighting.TurnWeighting;
 import com.graphhopper.routing.weighting.Weighting;
 import com.graphhopper.storage.*;
-import com.graphhopper.util.*;
+import com.graphhopper.util.CHEdgeExplorer;
+import com.graphhopper.util.CHEdgeIterator;
+import com.graphhopper.util.Helper;
+import com.graphhopper.util.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -239,7 +242,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
     private void initFromGraph() {
         ghStorage.freeze();
         FlagEncoder prepareFlagEncoder = prepareWeighting.getFlagEncoder();
-        final EdgeFilter allFilter = new DefaultEdgeFilter(prepareFlagEncoder, true, true);
+        final EdgeFilter allFilter = DefaultEdgeFilter.allEdges(prepareFlagEncoder);
         maxLevel = prepareGraph.getNodes();
         vehicleAllExplorer = prepareGraph.createEdgeExplorer(allFilter);
         vehicleAllTmpExplorer = prepareGraph.createEdgeExplorer(allFilter);

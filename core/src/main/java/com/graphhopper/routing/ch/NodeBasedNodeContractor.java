@@ -38,7 +38,7 @@ class NodeBasedNodeContractor extends AbstractNodeContractor {
     private CHEdgeExplorer remainingEdgeExplorer;
     private IgnoreNodeFilter ignoreNodeFilter;
     private DijkstraOneToMany prepareAlgo;
-    private long addedShortcutsCount;
+    private int addedShortcutsCount;
     private long dijkstraCount;
     private StopWatch dijkstraSW = new StopWatch();
     // meanDegree is the number of edges / number of nodes ratio of the graph, not really the average degree, because
@@ -54,7 +54,7 @@ class NodeBasedNodeContractor extends AbstractNodeContractor {
     public void initFromGraph() {
         super.initFromGraph();
         ignoreNodeFilter = new IgnoreNodeFilter(prepareGraph, maxLevel);
-        final EdgeFilter allFilter = new DefaultEdgeFilter(encoder, true, true);
+        final EdgeFilter allFilter = DefaultEdgeFilter.allEdges(encoder);
         final EdgeFilter remainingNodesFilter = new LevelEdgeFilter(prepareGraph) {
             @Override
             public final boolean accept(EdgeIteratorState edgeState) {

@@ -29,7 +29,7 @@ import com.graphhopper.storage.GraphHopperStorage;
 import com.graphhopper.util.CHEdgeExplorer;
 
 abstract class AbstractNodeContractor implements NodeContractor {
-    final GraphHopperStorage ghStorage;
+    private final GraphHopperStorage ghStorage;
     final CHGraph prepareGraph;
     final FlagEncoder encoder;
     CHEdgeExplorer inEdgeExplorer;
@@ -48,8 +48,8 @@ abstract class AbstractNodeContractor implements NodeContractor {
 
     @Override
     public void initFromGraph() {
-        inEdgeExplorer = prepareGraph.createEdgeExplorer(new DefaultEdgeFilter(encoder, true, false));
-        outEdgeExplorer = prepareGraph.createEdgeExplorer(new DefaultEdgeFilter(encoder, false, true));
+        inEdgeExplorer = prepareGraph.createEdgeExplorer(DefaultEdgeFilter.inEdges(encoder));
+        outEdgeExplorer = prepareGraph.createEdgeExplorer(DefaultEdgeFilter.outEdges(encoder));
         maxLevel = prepareGraph.getNodes();
         maxEdgesCount = ghStorage.getAllEdges().length();
     }
