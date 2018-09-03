@@ -12,9 +12,8 @@ import java.util.Map;
 
 public class CmdArgsDeserializer extends JsonDeserializer<CmdArgs> {
 
-    private static final TypeReference<Map<String, String>> MAP_STRING_STRING
-            = new TypeReference<Map<String, String>>() {
-    };
+    private static final TypeReference<Map<String,String>> MAP_STRING_STRING
+            = new TypeReference<Map<String,String>>() {};
 
     @Override
     public CmdArgs deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {

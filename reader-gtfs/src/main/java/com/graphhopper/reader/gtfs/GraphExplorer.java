@@ -136,9 +136,9 @@ final class GraphExplorer {
     private long waitingTime(EdgeIteratorState edge, long earliestStartTime) {
         long l = flagEncoder.getTime(edge.getFlags()) * 1000 - millisOnTravelDay(edge, earliestStartTime);
         if (!reverse) {
-            if (l < 0) l = l + 24 * 60 * 60 * 1000;
+            if (l < 0) l = l + 24*60*60*1000;
         } else {
-            if (l > 0) l = l - 24 * 60 * 60 * 1000;
+            if (l > 0) l = l - 24*60*60*1000;
         }
         return l;
     }

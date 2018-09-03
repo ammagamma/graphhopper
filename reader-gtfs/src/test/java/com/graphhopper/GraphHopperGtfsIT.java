@@ -141,7 +141,7 @@ public class GraphHopperGtfsIT {
                 FROM_LAT, FROM_LON,
                 TO_LAT, TO_LON
         );
-        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007, 1, 1, 7, 44).atZone(zoneId).toInstant());
+        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007,1,1,7,44).atZone(zoneId).toInstant());
         ghRequest.getHints().put(Parameters.PT.BLOCKED_ROUTE_TYPES, 8);
 
         GHResponse response = graphHopper.route(ghRequest);
@@ -222,7 +222,7 @@ public class GraphHopperGtfsIT {
                 FROM_LAT, FROM_LON,
                 TO_LAT, TO_LON
         );
-        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007, 1, 1, 23, 0).atZone(zoneId).toInstant());
+        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007,1,1,23,0).atZone(zoneId).toInstant());
         ghRequest.getHints().put(Parameters.PT.PROFILE_QUERY, true);
         ghRequest.getHints().put(Parameters.PT.IGNORE_TRANSFERS, true);
         ghRequest.getHints().put(Parameters.PT.LIMIT_SOLUTIONS, 21);
@@ -518,17 +518,17 @@ public class GraphHopperGtfsIT {
     @Test
     public void testCustomObjectiveFunction() {
         GHRequest ghRequest = new GHRequest(
-                36.868446, -116.784582,  // BEATTY_AIRPORT stop
-                36.425288, -117.133162       // FUR_CREEK_RES stop
+                36.868446,-116.784582,  // BEATTY_AIRPORT stop
+                36.425288,-117.133162       // FUR_CREEK_RES stop
         );
-        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007, 1, 1, 14, 0, 0).atZone(zoneId).toInstant());
+        ghRequest.getHints().put(Parameters.PT.EARLIEST_DEPARTURE_TIME, LocalDateTime.of(2007,1,1,14,0,0).atZone(zoneId).toInstant());
 
         GHResponse response = graphHopper.route(ghRequest);
 
         PathWrapper solutionWithTransfer = response.getAll().get(0);
         PathWrapper solutionWithoutTransfer = response.getAll().get(1);
 
-        Assume.assumeTrue("First solution has one transfer", solutionWithTransfer.getNumChanges() == 1);
+        Assume.assumeTrue("First solution has one transfer",solutionWithTransfer.getNumChanges() == 1);
         Assume.assumeTrue("Second solution has no transfers", solutionWithoutTransfer.getNumChanges() == 0);
         Assume.assumeTrue("With transfers is faster than without", solutionWithTransfer.getTime() < solutionWithoutTransfer.getTime());
 
@@ -543,14 +543,14 @@ public class GraphHopperGtfsIT {
         ghRequest.getHints().put("beta_transfers", betaTransfers - 10);
         response = graphHopper.route(ghRequest);
 
-        assertEquals("Get exactly one solution", 1, response.getAll().size());
+        assertEquals("Get exactly one solution",1, response.getAll().size());
         assertEquals("Prefer solution with transfers when I give the smaller beta", solutionWithTransfer.getTime(), response.getBest().getTime());
 
         ghRequest.getHints().put("beta_transfers", betaTransfers + 10);
 
         response = graphHopper.route(ghRequest);
 
-        assertEquals("Get exactly one solution", 1, response.getAll().size());
+        assertEquals("Get exactly one solution",1, response.getAll().size());
         assertEquals("Prefer solution without transfers when I give the higher beta", solutionWithoutTransfer.getTime(), response.getBest().getTime());
     }
 
