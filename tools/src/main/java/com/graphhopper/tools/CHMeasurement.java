@@ -160,7 +160,7 @@ public class CHMeasurement {
                 }
 
                 if (!chRoute.getBest().getPoints().equals(nonChRoute.getBest().getPoints())) {
-                    // small negative deviations are due to weight truncation when shortcuts ar stored
+                    // small negative deviations are due to weight truncation when shortcuts are stored
                     double chWeight = chRoute.getBest().getRouteWeight();
                     double nonCHWeight = nonChRoute.getBest().getRouteWeight();
                     LOGGER.warn("error for {}: found different points for query from {} to {}, {}", algo,
