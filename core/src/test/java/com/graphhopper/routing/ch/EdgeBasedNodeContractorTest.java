@@ -1162,16 +1162,16 @@ public class EdgeBasedNodeContractorTest {
     @Test
     @Ignore("this test fails because of shortcut weight truncation in CHGraphImpl")
     public void testNodeContraction_minorWeightDeviation() {
-        graph.edge(3, 2, 51.401, false);
-        graph.edge(2, 0, 70.041, false);
-        graph.edge(2, 1, 45.852, false);
-        graph.edge(0, 3, 75.806, false);
-        graph.edge(1, 2, 45.773, false);
+        // 0 -> 1 -> 2 -> 3 -> 4
+        graph.edge(0, 1, 51.401, false);
+        graph.edge(1, 2, 70.041, false);
+        graph.edge(2, 3, 75.806, false);
+        graph.edge(3, 4, 05.003, false);
         graph.freeze();
         setMaxLevelOnAllNodes();
-        contractNodes(0);
+        contractNodes(2);
         checkShortcuts(
-                createShortcut(2, 3, 1, 3, 1, 3, 145.847)
+                createShortcut(1, 3, 1, 2, 1, 2, 145.847)
         );
     }
 
