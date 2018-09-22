@@ -500,7 +500,7 @@ public class CHTurnCostTest {
     @Test
     @Repeat(times = 10)
     public void testFindPath_highlyConnectedGraph_compareWithDijkstra() {
-        // In this test we use a random contraction order and run many random routing queries. the results are checked
+        // In this test we use a random contraction order and run many random routing queries. The results are checked
         // by comparing them to the results of a standard dijkstra search.
         // If a test fails use the debug output to generate the graph creation code for further debugging!
 

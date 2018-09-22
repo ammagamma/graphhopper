@@ -38,6 +38,7 @@ import static java.lang.Double.isInfinite;
 /**
  * Helper class used to perform local witness path searches for graph preparation in edge-based Contraction Hierarchies.
  * <p>
+ *     (source edge) -- s -- x -- t -- (target edge) 
  * Let x be a node to be contracted (the 'center node') and s and t neighboring un-contracted nodes of x that are
  * directly connected with x (via a normal edge or a shortcut). This class is used to examine the optimal path
  * between s and t in the graph of not yet contracted nodes. More precisely it looks at the minimal-weight-path from an
@@ -155,7 +156,7 @@ public class WitnessPathSearcher {
      * reused and the previous search is extended if necessary. Note that you need to call
      * {@link #initSearch(int, int, int)} before calling this method to initialize the search.
      *
-     * @param targetNode the neighbor node where the node should end (t)
+     * @param targetNode the neighbor node that should be reached by the path (t)
      * @param targetEdge the original edge outgoing from t where the search ends
      * @return the leaf shortest path tree entry (including all ancestor entries) ending in an edge incoming in t if a
      * 'bridge-path' (see above) has been found to be the optimal path or null if the optimal path is either a witness
