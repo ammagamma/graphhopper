@@ -38,7 +38,7 @@ import static java.lang.Double.isInfinite;
 /**
  * Helper class used to perform local witness path searches for graph preparation in edge-based Contraction Hierarchies.
  * <p>
- *     (source edge) -- s -- x -- t -- (target edge) 
+ * (source edge) -- s -- x -- t -- (target edge)
  * Let x be a node to be contracted (the 'center node') and s and t neighboring un-contracted nodes of x that are
  * directly connected with x (via a normal edge or a shortcut). This class is used to examine the optimal path
  * between s and t in the graph of not yet contracted nodes. More precisely it looks at the minimal-weight-path from an
@@ -63,6 +63,7 @@ import static java.lang.Double.isInfinite;
  */
 public class WitnessPathSearcher {
     private static final int NO_NODE = -1;
+    private static final double MAX_ZERO_WEIGHT_LOOP = 1.e-3;
 
     // graph variables
     private final CHGraph chGraph;
@@ -177,7 +178,14 @@ public class WitnessPathSearcher {
             final int incEdge = inIter.getLastOrigEdge();
             final int edgeKey = getEdgeKey(incEdge, targetNode);
             if (edges[edgeKey] != NO_EDGE) {
-                updateBestPath(targetNode, targetEdge, edgeKey);
+                boolean isZeroWeightLoop = parents[edgeKey] >= 0 && targetNode == adjNodes[parents[edgeKey]] &&
+                        weights[edgeKey] - weights[parents[edgeKey]] <= MAX_ZERO_WEIGHT_LOOP;
+                if (!isZeroWeightLoop) {
+                    // we may not update the best path if we are dealing with a zero weight loop here, because when a
+                    // zero weight loop updates the best path to be no longer a bridge path we cannot trust that there
+                    // will be a shortcut leading to the zero weight loop in case there are multiple zero weight loops.
+                    updateBestPath(targetNode, targetEdge, edgeKey);
+                }
             }
         }
 
@@ -209,7 +217,8 @@ public class WitnessPathSearcher {
                 continue;
             }
 
-            EdgeIterator iter = outEdgeExplorer.setBaseNode(adjNodes[currKey]);
+            final int fromNode = adjNodes[currKey];
+            EdgeIterator iter = outEdgeExplorer.setBaseNode(fromNode);
             while (iter.next()) {
                 if (isContracted(iter.getAdjNode())) {
                     continue;
@@ -218,11 +227,13 @@ public class WitnessPathSearcher {
                 if (iter.getFirstOrigEdge() == incEdges[currKey]) {
                     continue;
                 }
-                double weight = turnWeighting.calcWeight(iter, false, incEdges[currKey]) + weights[currKey];
+                double edgeWeight = turnWeighting.calcWeight(iter, false, incEdges[currKey]);
+                double weight = edgeWeight + weights[currKey];
                 if (isInfinite(weight)) {
                     continue;
                 }
                 boolean isPotentialBridgePath = this.isPotentialBridgePaths[currKey] && iter.getAdjNode() == centerNode;
+                boolean isZeroWeightLoop = fromNode == targetNode && edgeWeight <= MAX_ZERO_WEIGHT_LOOP;
 
                 // dijkstra expansion: add or update current entries
                 int key = getEdgeKey(iter.getLastOrigEdge(), iter.getAdjNode());
@@ -230,11 +241,15 @@ public class WitnessPathSearcher {
                     setEntry(key, iter, weight, currKey, isPotentialBridgePath);
                     changedEdges.add(key);
                     dijkstraHeap.insert_(weight, key);
-                    updateBestPath(targetNode, targetEdge, key);
+                    if (!isZeroWeightLoop) {
+                        updateBestPath(targetNode, targetEdge, key);
+                    }
                 } else if (weight < weights[key]) {
                     updateEntry(key, iter, weight, currKey, isPotentialBridgePath);
                     dijkstraHeap.update_(weight, key);
-                    updateBestPath(targetNode, targetEdge, key);
+                    if (!isZeroWeightLoop) {
+                        updateBestPath(targetNode, targetEdge, key);
+                    }
                 }
             }
             numSettledEdges++;
