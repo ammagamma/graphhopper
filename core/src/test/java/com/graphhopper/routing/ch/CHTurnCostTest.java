@@ -696,7 +696,7 @@ public class CHTurnCostTest {
     /**
      * same as {@link #testFindPath_random_compareWithDijkstra()}, but using automatic node priority calculation
      */
-    @Repeat(times = 1000)
+    @Repeat(times = 10)
     @Test
     public void testFindPath_heuristic_compareWithDijkstra() {
         long seed = System.nanoTime();
@@ -704,7 +704,7 @@ public class CHTurnCostTest {
         GHUtility.buildRandomGraph(graph, seed, 20, 3.0, true, true, 0.9);
         GHUtility.addRandomTurnCosts(graph, seed, encoder, maxCost, turnCostExtension);
         graph.freeze();
-        automaticCompareCHWithDijkstra(10000);
+        automaticCompareCHWithDijkstra(100);
     }
 
     private int nextCost(Random rnd) {
