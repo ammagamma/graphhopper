@@ -30,6 +30,7 @@ import com.graphhopper.storage.*;
 import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.GHUtility;
+import com.graphhopper.util.PMap;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -1357,9 +1358,8 @@ public class EdgeBasedNodeContractorTest {
     }
 
     private EdgeBasedNodeContractor createNodeContractor() {
-        EdgeBasedNodeContractor.Config config = new EdgeBasedNodeContractor.Config();
         Directory dir = new GHDirectory("", DAType.RAM_INT);
-        EdgeBasedNodeContractor nodeContractor = new EdgeBasedNodeContractor(dir, graph, chGraph, chTurnWeighting, config);
+        EdgeBasedNodeContractor nodeContractor = new EdgeBasedNodeContractor(dir, graph, chGraph, chTurnWeighting, new PMap());
         nodeContractor.initFromGraph();
         return nodeContractor;
     }

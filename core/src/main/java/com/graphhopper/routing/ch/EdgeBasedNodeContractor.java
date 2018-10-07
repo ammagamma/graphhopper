@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.graphhopper.routing.ch.CHParameters.*;
 import static com.graphhopper.util.Helper.nf;
 
 /**
@@ -44,14 +45,15 @@ import static com.graphhopper.util.Helper.nf;
  * or calculating the node priority, while the actual searches for witness paths are delegated to
  * {@link WitnessPathSearcher}.
  */
-public class EdgeBasedNodeContractor extends AbstractNodeContractor {
+class EdgeBasedNodeContractor extends AbstractNodeContractor {
     // todo: does logging affect performance ?
     private static final Logger LOGGER = LoggerFactory.getLogger(EdgeBasedNodeContractor.class);
     private final TurnWeighting turnWeighting;
     private final FlagEncoder encoder;
-    private final Config config;
     private final ShortcutHandler addingShortcutHandler = new AddingShortcutHandler();
     private final ShortcutHandler countingShortcutHandler = new CountingShortcutHandler();
+    private final Params params = new Params();
+    private final PMap pMap;
     private ShortcutHandler activeShortcutHandler;
     private final StopWatch dijkstraSW = new StopWatch();
     private final SearchStrategy activeStrategy = new AggressiveStrategy();
@@ -77,18 +79,35 @@ public class EdgeBasedNodeContractor extends AbstractNodeContractor {
     private int numPolledEdges;
 
     public EdgeBasedNodeContractor(Directory dir, GraphHopperStorage ghStorage, CHGraph prepareGraph,
-                                   TurnWeighting turnWeighting, Config config) {
+                                   TurnWeighting turnWeighting, PMap pMap) {
         super(dir, ghStorage, prepareGraph, turnWeighting);
         this.turnWeighting = turnWeighting;
         this.encoder = turnWeighting.getFlagEncoder();
-        this.config = config;
+        this.pMap = pMap;
+        extractParams(pMap);
+    }
+
+    private void extractParams(PMap pMap) {
+        Float edgeQuotientWeight = pMap.getFloatOrNull(EDGE_QUOTIENT_WEIGHT);
+        if (edgeQuotientWeight != null) {
+            params.edgeQuotientWeight = edgeQuotientWeight;
+        }
+
+        Float originalEdgeQuotientWeight = pMap.getFloatOrNull(ORIGINAL_EDGE_QUOTIENT_WEIGHT);
+        if (originalEdgeQuotientWeight != null) {
+            params.originalEdgeQuotientWeight = originalEdgeQuotientWeight;
+        }
+
+        Float hierarchyDepthWeight = pMap.getFloatOrNull(HIERARCHY_DEPTH_WEIGHT);
+        if (hierarchyDepthWeight != null) {
+            params.hierarchyDepthWeight = hierarchyDepthWeight;
+        }
     }
 
     @Override
     public void initFromGraph() {
         super.initFromGraph();
-        witnessPathSearcher = new WitnessPathSearcher(ghStorage, prepareGraph, turnWeighting,
-                config.getWitnessPathSearcherConfig());
+        witnessPathSearcher = new WitnessPathSearcher(ghStorage, prepareGraph, turnWeighting, pMap);
         DefaultEdgeFilter inEdgeFilter = DefaultEdgeFilter.inEdges(encoder);
         DefaultEdgeFilter outEdgeFilter = DefaultEdgeFilter.outEdges(encoder);
         DefaultEdgeFilter allEdgeFilter = DefaultEdgeFilter.allEdges(encoder);
@@ -119,9 +138,9 @@ public class EdgeBasedNodeContractor extends AbstractNodeContractor {
         float edgeQuotient = numShortcuts / (float) numPrevEdges;
         float origEdgeQuotient = numOrigEdges / (float) numPrevOrigEdges;
         int hierarchyDepth = hierarchyDepths[node];
-        float priority = config.getEdgeQuotientWeight() * edgeQuotient +
-                config.getOriginalEdgeQuotientWeight() * origEdgeQuotient +
-                config.getHierarchyDepthWeight() * hierarchyDepth;
+        float priority = params.edgeQuotientWeight * edgeQuotient +
+                params.originalEdgeQuotientWeight * origEdgeQuotient +
+                params.hierarchyDepthWeight * hierarchyDepth;
         LOGGER.trace("node: %d, eq: %d / %d = %f, oeq: %d / %d = %f, depth: %d --> %f\n",
                 node,
                 numShortcuts, numPrevEdges, edgeQuotient,
@@ -400,39 +419,11 @@ public class EdgeBasedNodeContractor extends AbstractNodeContractor {
         }
     }
 
-    public static class Config {
+    public static class Params {
+        // todo: optimize
         private float edgeQuotientWeight = 1;
         private float originalEdgeQuotientWeight = 3;
         private float hierarchyDepthWeight = 2;
-        private WitnessPathSearcher.Config witnessPathSearcherConfig = new WitnessPathSearcher.Config();
-
-        public float getEdgeQuotientWeight() {
-            return edgeQuotientWeight;
-        }
-
-        public void setEdgeQuotientWeight(float edgeQuotientWeight) {
-            this.edgeQuotientWeight = edgeQuotientWeight;
-        }
-
-        public float getOriginalEdgeQuotientWeight() {
-            return originalEdgeQuotientWeight;
-        }
-
-        public void setOriginalEdgeQuotientWeight(float originalEdgeQuotientWeight) {
-            this.originalEdgeQuotientWeight = originalEdgeQuotientWeight;
-        }
-
-        public float getHierarchyDepthWeight() {
-            return hierarchyDepthWeight;
-        }
-
-        public void setHierarchyDepthWeight(float hierarchyDepthWeight) {
-            this.hierarchyDepthWeight = hierarchyDepthWeight;
-        }
-
-        public WitnessPathSearcher.Config getWitnessPathSearcherConfig() {
-            return witnessPathSearcherConfig;
-        }
     }
 
     private static class Stats {

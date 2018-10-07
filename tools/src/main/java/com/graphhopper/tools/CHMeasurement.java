@@ -78,11 +78,11 @@ public class CHMeasurement {
         }
         CHAlgoFactoryDecorator chDecorator = graphHopper.getCHFactoryDecorator();
         chDecorator.setDisablingAllowed(true);
-        chDecorator.setPreparationPeriodicUpdates(periodicUpdates);
-        chDecorator.setPreparationLazyUpdates(lazyUpdates);
-        chDecorator.setPreparationNeighborUpdates(neighborUpdates);
-        chDecorator.setPreparationContractedNodes(contractedNodes);
-        chDecorator.setPreparationLogMessages(logMessages);
+        cmdArgs.put("ch.prepare.updates.periodic", periodicUpdates);
+        cmdArgs.put("ch.prepare.updates.lazy", lazyUpdates);
+        cmdArgs.put("ch.prepare.updates.neighbor", neighborUpdates);
+        cmdArgs.put("ch.prepare.contracted_nodes", contractedNodes);
+        cmdArgs.put("ch.prepare.log_messages", logMessages);
 
         LMAlgoFactoryDecorator lmDecorator = graphHopper.getLMFactoryDecorator();
         lmDecorator.setEnabled(true);
