@@ -62,17 +62,6 @@ public class PMapTest {
     }
 
     @Test
-    public void numericPropertiesCanBeRetrievedWithNull() {
-        PMap subject = new PMap("x=123|y=26.3|z=6garble");
-        assertEquals(123, (int) subject.getIntOrNull("x"));
-        assertNull(subject.getIntOrNull("y"));
-        assertNull(subject.getIntOrNull("z"));
-        assertNull(subject.getIntOrNull("xyz"));
-        assertEquals(123, subject.getDoubleOrNull("x"), 1.e-4);
-        assertNull(subject.getLongOrNull("y"));
-    }
-
-    @Test
     public void hasReturnsCorrectResult() {
         PMap subject = new PMap("foo=123.45|bar=56.78");
 

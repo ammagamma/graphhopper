@@ -88,20 +88,9 @@ class EdgeBasedNodeContractor extends AbstractNodeContractor {
     }
 
     private void extractParams(PMap pMap) {
-        Float edgeQuotientWeight = pMap.getFloatOrNull(EDGE_QUOTIENT_WEIGHT);
-        if (edgeQuotientWeight != null) {
-            params.edgeQuotientWeight = edgeQuotientWeight;
-        }
-
-        Float originalEdgeQuotientWeight = pMap.getFloatOrNull(ORIGINAL_EDGE_QUOTIENT_WEIGHT);
-        if (originalEdgeQuotientWeight != null) {
-            params.originalEdgeQuotientWeight = originalEdgeQuotientWeight;
-        }
-
-        Float hierarchyDepthWeight = pMap.getFloatOrNull(HIERARCHY_DEPTH_WEIGHT);
-        if (hierarchyDepthWeight != null) {
-            params.hierarchyDepthWeight = hierarchyDepthWeight;
-        }
+        params.edgeQuotientWeight = pMap.getFloat(EDGE_QUOTIENT_WEIGHT, params.edgeQuotientWeight);
+        params.originalEdgeQuotientWeight = pMap.getFloat(ORIGINAL_EDGE_QUOTIENT_WEIGHT, params.originalEdgeQuotientWeight);
+        params.hierarchyDepthWeight = pMap.getFloat(HIERARCHY_DEPTH_WEIGHT, params.hierarchyDepthWeight);
     }
 
     @Override

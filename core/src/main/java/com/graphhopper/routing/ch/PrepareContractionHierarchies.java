@@ -64,7 +64,7 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
     private final StopWatch lazyUpdateSW = new StopWatch();
     private final StopWatch neighborUpdateSW = new StopWatch();
     private final StopWatch contractionSW = new StopWatch();
-    final Params params;
+    private final Params params;
     NodeContractor nodeContractor;
     private CHEdgeExplorer vehicleAllExplorer;
     private CHEdgeExplorer vehicleAllTmpExplorer;
@@ -89,27 +89,11 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
 
     public PrepareContractionHierarchies setParams(PMap pMap) {
         this.pMap = pMap;
-
-        Integer periodicUpdates = pMap.getIntOrNull(PERIODIC_UPDATES);
-        if (periodicUpdates != null) {
-            params.setPeriodicUpdatesPercentage(periodicUpdates);
-        }
-        Integer lastNodesLazyUpdates = pMap.getIntOrNull(LAST_LAZY_NODES_UPDATES);
-        if (lastNodesLazyUpdates != null) {
-            params.setLastNodesLazyUpdatePercentage(lastNodesLazyUpdates);
-        }
-        Integer neighborUpdates = pMap.getIntOrNull(NEIGHBOR_UPDATES);
-        if (neighborUpdates != null) {
-            params.setNeighborUpdatePercentage(neighborUpdates);
-        }
-        Integer nodesContracted = pMap.getIntOrNull(CONTRACTED_NODES);
-        if (nodesContracted != null) {
-            params.setNodesContractedPercentage(nodesContracted);
-        }
-        Integer logMessages = pMap.getIntOrNull(LOG_MESSAGES);
-        if (logMessages != null) {
-            params.setLogMessagesPercentage(logMessages);
-        }
+        params.setPeriodicUpdatesPercentage(pMap.getInt(PERIODIC_UPDATES, params.getPeriodicUpdatesPercentage()));
+        params.setLastNodesLazyUpdatePercentage(pMap.getInt(LAST_LAZY_NODES_UPDATES, params.getLastNodesLazyUpdatePercentage()));
+        params.setNeighborUpdatePercentage(pMap.getInt(NEIGHBOR_UPDATES, params.getNeighborUpdatePercentage()));
+        params.setNodesContractedPercentage(pMap.getInt(CONTRACTED_NODES, params.getNodesContractedPercentage()));
+        params.setLogMessagesPercentage(pMap.getInt(LOG_MESSAGES, params.getLogMessagesPercentage()));
         return this;
     }
 
