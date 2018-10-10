@@ -76,13 +76,12 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
     private int initSize;
     private int checkCounter;
 
-    public PrepareContractionHierarchies(Directory dir, GraphHopperStorage ghStorage, CHGraph chGraph,
-                                         Weighting weighting, TraversalMode traversalMode) {
+    public PrepareContractionHierarchies(Directory dir, GraphHopperStorage ghStorage, CHGraph chGraph, TraversalMode traversalMode) {
         this.dir = dir;
         this.ghStorage = ghStorage;
         this.prepareGraph = (CHGraphImpl) chGraph;
         this.traversalMode = traversalMode;
-        this.weighting = weighting;
+        this.weighting = ((CHGraphImpl) chGraph).getWeighting();
         prepareWeighting = new PreparationWeighting(weighting);
         this.params = Params.forTraversalMode(traversalMode);
     }
@@ -410,25 +409,25 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
          * Specifies how often periodic updates will happen. The higher the value the longer the preparation takes
          * but the less shortcuts are produced.
          */
-        int periodicUpdatesPercentage;
+        private int periodicUpdatesPercentage;
         /**
          * Specifies when lazy updates will happen, measured relative to all existing nodes. 100 means always.
          */
-        int lastNodesLazyUpdatePercentage;
+        private int lastNodesLazyUpdatePercentage;
         /**
          * Specifies how often neighbor updates will happen. 100 means always.
          */
-        int neighborUpdatePercentage;
+        private int neighborUpdatePercentage;
         /**
          * Defines how many nodes (percentage) should be contracted. Less nodes means slower query but
          * faster contraction.
          */
-        int nodesContractedPercentage;
+        private int nodesContractedPercentage;
         /**
          * Specifies how often a log message should be printed. Specify something around 20 (20% of the
          * start nodes).
          */
-        int logMessagesPercentage;
+        private int logMessagesPercentage;
 
         static Params forTraversalMode(TraversalMode traversalMode) {
             if (traversalMode.isEdgeBased()) {
@@ -441,11 +440,11 @@ public class PrepareContractionHierarchies extends AbstractAlgoPreparation imple
 
         private Params(int periodicUpdatesPercentage, int lastNodesLazyUpdatePercentage, int neighborUpdatePercentage,
                        int nodesContractedPercentage, int logMessagesPercentage) {
-            this.periodicUpdatesPercentage = periodicUpdatesPercentage;
-            this.lastNodesLazyUpdatePercentage = lastNodesLazyUpdatePercentage;
-            this.neighborUpdatePercentage = neighborUpdatePercentage;
-            this.nodesContractedPercentage = nodesContractedPercentage;
-            this.logMessagesPercentage = logMessagesPercentage;
+            setPeriodicUpdatesPercentage(periodicUpdatesPercentage);
+            setLastNodesLazyUpdatePercentage(lastNodesLazyUpdatePercentage);
+            setNeighborUpdatePercentage(neighborUpdatePercentage);
+            setNodesContractedPercentage(nodesContractedPercentage);
+            setLogMessagesPercentage(logMessagesPercentage);
         }
 
         int getPeriodicUpdatesPercentage() {
