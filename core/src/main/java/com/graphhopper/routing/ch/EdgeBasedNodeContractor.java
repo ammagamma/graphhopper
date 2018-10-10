@@ -178,6 +178,11 @@ class EdgeBasedNodeContractor extends AbstractNodeContractor {
         return numPolledEdges;
     }
 
+    @Override
+    boolean isEdgeBased() {
+        return true;
+    }
+
     private void findAndHandleShortcuts(int node) {
         numPolledEdges = 0;
         activeStrategy.findAndHandleShortcuts(node);

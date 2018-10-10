@@ -809,7 +809,7 @@ public class GraphHopperOSMTest {
                 PrepareContractionHierarchies pch = (PrepareContractionHierarchies) raf;
                 assertTrue("Preparation wasn't run! [" + threadCount + "]", pch.isPrepared());
 
-                String name = AbstractWeighting.weightingToFileName(pch.getWeighting());
+                String name = AbstractWeighting.weightingToFileName(pch.getWeighting(), pch.isEdgeBased());
                 Long singleThreadShortcutCount = shortcutCountMap.get(name);
                 if (singleThreadShortcutCount == null)
                     shortcutCountMap.put(name, pch.getShortcuts());
@@ -853,7 +853,7 @@ public class GraphHopperOSMTest {
             for (PrepareLandmarks prepLM : tmpGH.getLMFactoryDecorator().getPreparations()) {
                 assertTrue("Preparation wasn't run! [" + threadCount + "]", prepLM.isPrepared());
 
-                String name = AbstractWeighting.weightingToFileName(prepLM.getWeighting());
+                String name = AbstractWeighting.weightingToFileName(prepLM.getWeighting(), false);
                 Integer singleThreadShortcutCount = landmarkCount.get(name);
                 if (singleThreadShortcutCount == null)
                     landmarkCount.put(name, prepLM.getSubnetworksWithLandmarks());
@@ -884,8 +884,8 @@ public class GraphHopperOSMTest {
         Weighting fwTruck = new FastestWeighting(truck);
         RAMDirectory ramDir = new RAMDirectory();
         GraphHopperStorage storage = new GraphHopperStorage(Arrays.asList(fwSimpleTruck, fwTruck), ramDir, em, false, new GraphExtension.NoOpExtension());
-        decorator.addWeighting(fwSimpleTruck);
-        decorator.addWeighting(fwTruck);
+        decorator.addNodeBasedWeighting(fwSimpleTruck);
+        decorator.addNodeBasedWeighting(fwTruck);
         decorator.addPreparation(new PrepareContractionHierarchies(ramDir, storage, storage.getGraph(CHGraph.class, fwSimpleTruck), TraversalMode.NODE_BASED));
         decorator.addPreparation(new PrepareContractionHierarchies(ramDir, storage, storage.getGraph(CHGraph.class, fwTruck), TraversalMode.NODE_BASED));
 
@@ -896,8 +896,8 @@ public class GraphHopperOSMTest {
         assertEquals("fastest|simple_truck", ((PrepareContractionHierarchies) decorator.getDecoratedAlgorithmFactory(null, wMap)).getWeighting().toString());
 
         // make sure weighting cannot be mixed
-        decorator.addWeighting(fwTruck);
-        decorator.addWeighting(fwSimpleTruck);
+        decorator.addNodeBasedWeighting(fwTruck);
+        decorator.addNodeBasedWeighting(fwSimpleTruck);
         try {
             decorator.addPreparation(new PrepareContractionHierarchies(ramDir, storage, storage.getGraph(CHGraph.class, fwSimpleTruck), TraversalMode.NODE_BASED));
             fail();

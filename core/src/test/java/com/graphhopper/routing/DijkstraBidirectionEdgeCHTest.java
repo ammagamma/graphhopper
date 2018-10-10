@@ -35,7 +35,7 @@ public class DijkstraBidirectionEdgeCHTest extends AbstractRoutingAlgorithmTeste
     protected GraphHopperStorage createGHStorage(
             EncodingManager em, List<? extends Weighting> weightings, boolean is3D) {
         return new GraphHopperStorage(weightings, new RAMDirectory(),
-                em, is3D, true, new TurnCostExtension()).create(1000);
+                em, is3D, new TurnCostExtension()).create(1000);
     }
 
     @Override
