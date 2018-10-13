@@ -68,6 +68,7 @@ public class CHMeasurement {
         if (withTurnCosts) {
             cmdArgs.put("graph.flag_encoders", "car|turn_costs=true");
             cmdArgs.put("prepare.ch.weightings", "fastest");
+            cmdArgs.put("prepare.ch.edge_based", "edge_or_node");
             if (landmarks > 0) {
                 cmdArgs.put("prepare.lm.weightings", "fastest");
                 cmdArgs.put("prepare.lm.landmarks", landmarks);
@@ -78,11 +79,11 @@ public class CHMeasurement {
         }
         CHAlgoFactoryDecorator chDecorator = graphHopper.getCHFactoryDecorator();
         chDecorator.setDisablingAllowed(true);
-        cmdArgs.put("ch.prepare.updates.periodic", periodicUpdates);
-        cmdArgs.put("ch.prepare.updates.lazy", lazyUpdates);
-        cmdArgs.put("ch.prepare.updates.neighbor", neighborUpdates);
-        cmdArgs.put("ch.prepare.contracted_nodes", contractedNodes);
-        cmdArgs.put("ch.prepare.log_messages", logMessages);
+        cmdArgs.put("prepare.ch.updates.periodic", periodicUpdates);
+        cmdArgs.put("prepare.ch.updates.lazy", lazyUpdates);
+        cmdArgs.put("prepare.ch.updates.neighbor", neighborUpdates);
+        cmdArgs.put("prepare.ch.contracted_nodes", contractedNodes);
+        cmdArgs.put("prepare.ch.log_messages", logMessages);
 
         LMAlgoFactoryDecorator lmDecorator = graphHopper.getLMFactoryDecorator();
         lmDecorator.setEnabled(true);
