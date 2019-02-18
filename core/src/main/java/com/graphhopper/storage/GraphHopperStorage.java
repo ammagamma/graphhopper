@@ -134,6 +134,11 @@ public final class GraphHopperStorage implements GraphStorage, Graph {
         return list;
     }
 
+    public int getSomeNodeId(int edgeId) {
+        long edgePointer = baseGraph.edgeAccess.toPointer(edgeId);
+        return baseGraph.edgeAccess.getOtherNode(-1, edgePointer);
+    }
+
     /**
      * @return the directory where this graph is stored.
      */
