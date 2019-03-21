@@ -74,7 +74,7 @@ public class GraphResource {
                 edge.id = iter.getEdge();
                 edge.from = pointFrom;
                 edge.to = pointTo;
-                edge.weight = iter.getWeight();
+                edge.weight = chGraph.getWeighting().calcWeight(iter, false, -1);
                 edges.add(edge);
             }
         }
