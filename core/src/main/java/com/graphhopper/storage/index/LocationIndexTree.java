@@ -473,7 +473,7 @@ public class LocationIndexTree implements LocationIndex {
             this.edgeExplorer = edgeExplorer;
         }
 
-        public final void onNode(int nodeId) {
+        public void onNode(int nodeId) {
             EdgeIterator iter = edgeExplorer.setBaseNode(nodeId);
             while (iter.next()) {
                 onEdge(iter, nodeId, iter.getAdjNode());
