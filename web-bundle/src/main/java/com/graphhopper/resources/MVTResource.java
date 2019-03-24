@@ -20,10 +20,7 @@ import com.wdtinc.mapbox_vector_tile.adapt.jts.UserDataKeyValueMapConverter;
 import com.wdtinc.mapbox_vector_tile.build.MvtLayerBuild;
 import com.wdtinc.mapbox_vector_tile.build.MvtLayerParams;
 import com.wdtinc.mapbox_vector_tile.build.MvtLayerProps;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,8 +103,24 @@ public class MVTResource {
         // in toFeatures addTags of the converter is called and layerProps is filled with keys&values => those need to be stored in the layerBuilder
         // otherwise the decoding won't be successful and "undefined":"undefined" instead of "speed": 30 is the result
         final MvtLayerProps layerProps = new MvtLayerProps();
-        final VectorTile.Tile.Layer.Builder layerBuilder = MvtLayerBuild.newLayerBuilder("roads", layerParams);
+        final VectorTile.Tile.Layer.Builder edgeLayerBuilder = MvtLayerBuild.newLayerBuilder("roads", layerParams);
+        final VectorTile.Tile.Layer.Builder nodeLayerBuilder = MvtLayerBuild.newLayerBuilder("junctions", layerParams);
         locationIndex.query(bbox, new LocationIndexTree.EdgeVisitor(edgeExplorer) {
+
+            @Override
+            public void onNode(int nodeId) {
+                double lat = na.getLat(nodeId);
+                double lon = na.getLon(nodeId);
+                Point point = geometryFactory.createPoint(new Coordinate(lon, lat));
+                Map<String, Object> map = new HashMap<>();
+                map.put("nodeId", nodeId);
+                point.setUserData(map);
+                TileGeomResult tileGeom = JtsAdapter.createTileGeom(point, tileEnvelope, geometryFactory, layerParams, acceptAllGeomFilter);
+                List<VectorTile.Tile.Feature> features = JtsAdapter.toFeatures(tileGeom.mvtGeoms, layerProps, converter);
+                nodeLayerBuilder.addAllFeatures(features);
+                super.onNode(nodeId);
+            }
+
             @Override
             public void onEdge(EdgeIteratorState edge, int nodeA, int nodeB) {
                 LineString lineString;
@@ -127,15 +140,17 @@ public class MVTResource {
                 }
 
                 edgeCounter.incrementAndGet();
-                Map<String, Object> map = new HashMap<>(2);
+                Map<String, Object> map = new HashMap<>(4);
                 map.put("speed", intSpeed);
                 map.put("name", edge.getName());
+                map.put("distance", edge.getDistance());
+                map.put("edgeId", edge.getEdge());
                 lineString.setUserData(map);
 
                 // doing some AffineTransformation
                 TileGeomResult tileGeom = JtsAdapter.createTileGeom(lineString, tileEnvelope, geometryFactory, layerParams, acceptAllGeomFilter);
                 List<VectorTile.Tile.Feature> features = JtsAdapter.toFeatures(tileGeom.mvtGeoms, layerProps, converter);
-                layerBuilder.addAllFeatures(features);
+                edgeLayerBuilder.addAllFeatures(features);
             }
 
             @Override
@@ -143,8 +158,10 @@ public class MVTResource {
             }
         });
 
-        MvtLayerBuild.writeProps(layerBuilder, layerProps);
-        mvtBuilder.addLayers(layerBuilder.build());
+        MvtLayerBuild.writeProps(edgeLayerBuilder, layerProps);
+        MvtLayerBuild.writeProps(nodeLayerBuilder, layerProps);
+        mvtBuilder.addLayers(edgeLayerBuilder.build());
+        mvtBuilder.addLayers(nodeLayerBuilder.build());
         byte[] bytes = mvtBuilder.build().toByteArray();
         totalSW.stop();
         logger.info("took: " + totalSW.getSeconds() + ", edges:" + edgeCounter.get());
