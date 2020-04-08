@@ -24,14 +24,19 @@ import com.graphhopper.reader.ReaderWay;
 import com.graphhopper.reader.dem.SRTMProvider;
 import com.graphhopper.reader.dem.SkadiProvider;
 import com.graphhopper.reader.osm.GraphHopperOSM;
-import com.graphhopper.routing.util.CarFlagEncoder;
-import com.graphhopper.routing.util.DefaultFlagEncoderFactory;
-import com.graphhopper.routing.util.EncodingManager;
-import com.graphhopper.routing.util.HintsMap;
+import com.graphhopper.routing.Dijkstra;
+import com.graphhopper.routing.Path;
+import com.graphhopper.routing.profiles.BooleanEncodedValue;
+import com.graphhopper.routing.querygraph.QueryGraph;
+import com.graphhopper.routing.util.*;
 import com.graphhopper.routing.util.parsers.OSMMaxSpeedParser;
 import com.graphhopper.routing.util.parsers.OSMRoadEnvironmentParser;
+import com.graphhopper.routing.weighting.FastestWeighting;
 import com.graphhopper.routing.weighting.Weighting;
+import com.graphhopper.storage.GraphHopperStorage;
 import com.graphhopper.storage.IntsRef;
+import com.graphhopper.storage.index.LocationIndex;
+import com.graphhopper.storage.index.QueryResult;
 import com.graphhopper.util.*;
 import com.graphhopper.util.Parameters.CH;
 import com.graphhopper.util.Parameters.Landmark;
@@ -1673,6 +1678,50 @@ public class GraphHopperIT {
         req.setProfile(profile);
         GHResponse rsp = hopper.route(req);
         assertEquals("there should not be an error, but was: " + rsp.getErrors(), 0, rsp.getErrors().size());
+    }
+
+    @Test
+    public void edge_splitting_bug() {
+        GraphHopperOSM hopper = new GraphHopperOSM();
+        hopper.setEncodingManager(EncodingManager.create("car"));
+        hopper.setGraphHopperLocation(GH_LOCATION);
+        hopper.setOSMFile("lauf-200115.osm.pbf");
+        hopper.setProfiles(new ProfileConfig("profile").setVehicle("car").setWeighting("fastest"));
+        hopper.importOrLoad();
+        GraphHopperStorage graph = hopper.getGraphHopperStorage();
+        LocationIndex locationIndex = hopper.getLocationIndex();
+        FlagEncoder encoder = hopper.getEncodingManager().fetchEdgeEncoders().get(0);
+        final FastestWeighting weighting = new FastestWeighting(encoder);
+        final BooleanEncodedValue accessEnc = weighting.getFlagEncoder().getAccessEnc();
+        EdgeFilter edgeFilter = new EdgeFilter() {
+            @Override
+            public boolean accept(EdgeIteratorState edgeState) {
+                return edgeState.get(accessEnc) && !Double.isInfinite(weighting.calcEdgeWeight(edgeState, false))
+                        || edgeState.getReverse(accessEnc) && !Double.isInfinite(weighting.calcEdgeWeight(edgeState, true));
+            }
+        };
+        GHPoint p = new GHPoint(49.529355099741494, 11.296203940756207);
+        GHPoint q = new GHPoint(49.523147, 11.293001);
+        GHPoint r = new GHPoint(49.53027363148555, 11.293370881574472);
+
+        // ***
+        // works
+//        List<GHPoint> points = Arrays.asList(p, q/*, r*/);
+        // does not work: the extra point changes the routing result
+        List<GHPoint> points = Arrays.asList(p, q, r);
+        // ***
+
+        List<QueryResult> queryResults = new ArrayList<>(points.size());
+        for (GHPoint point : points) {
+            queryResults.add(locationIndex.findClosest(point.lat, point.lon, edgeFilter));
+        }
+        QueryGraph queryGraph = QueryGraph.lookup(graph, queryResults);
+        Dijkstra dijkstra = new Dijkstra(queryGraph, queryGraph.wrapWeighting(weighting), TraversalMode.NODE_BASED);
+        Path path = dijkstra.calcPath(queryResults.get(0).getClosestNode(), queryResults.get(1).getClosestNode());
+        System.out.println(path);
+        assertEquals(168.369, path.getWeight(), 0.1);
+        assertEquals(168369, path.getTime(), 100);
+        assertEquals(1053.846, path.getDistance(), 0.1);
     }
 
     @Test
