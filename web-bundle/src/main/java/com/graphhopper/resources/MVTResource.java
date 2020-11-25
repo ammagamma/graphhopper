@@ -60,7 +60,7 @@ public class MVTResource {
             @PathParam("y") int yInfo,
             @QueryParam(Parameters.Details.PATH_DETAILS) List<String> pathDetails) {
 
-        if (zInfo <= 9) {
+        if (zInfo <= 5) {
             VectorTile.Tile.Builder mvtBuilder = VectorTile.Tile.newBuilder();
             return Response.fromResponse(Response.ok(mvtBuilder.build().toByteArray(), PBF).build())
                     .header("X-GH-Took", "0")
@@ -98,22 +98,22 @@ public class MVTResource {
             public void onEdge(EdgeIteratorState edge, int nodeA, int nodeB) {
                 LineString lineString;
                 RoadClass rc = edge.get(roadClassEnc);
-                if (zInfo >= 14) {
-                    PointList pl = edge.fetchWayGeometry(FetchMode.ALL);
-                    lineString = pl.toLineString(false);
-                } else if (rc == RoadClass.MOTORWAY
-                        || zInfo > 10 && (rc == RoadClass.PRIMARY || rc == RoadClass.TRUNK)
-                        || zInfo > 11 && (rc == RoadClass.SECONDARY)
-                        || zInfo > 12) {
-                    double lat = na.getLatitude(nodeA);
-                    double lon = na.getLongitude(nodeA);
-                    double toLat = na.getLatitude(nodeB);
-                    double toLon = na.getLongitude(nodeB);
-                    lineString = geometryFactory.createLineString(new Coordinate[]{new Coordinate(lon, lat), new Coordinate(toLon, toLat)});
-                } else {
-                    // skip edge for certain zoom
-                    return;
-                }
+//                if (zInfo >= 14) {
+                PointList pl = edge.fetchWayGeometry(FetchMode.ALL);
+                lineString = pl.toLineString(false);
+//                } else if (rc == RoadClass.MOTORWAY
+//                        || zInfo > 10 && (rc == RoadClass.PRIMARY || rc == RoadClass.TRUNK)
+//                        || zInfo > 11 && (rc == RoadClass.SECONDARY)
+//                        || zInfo > 12) {
+//                    double lat = na.getLatitude(nodeA);
+//                    double lon = na.getLongitude(nodeA);
+//                    double toLat = na.getLatitude(nodeB);
+//                    double toLon = na.getLongitude(nodeB);
+//                    lineString = geometryFactory.createLineString(new Coordinate[]{new Coordinate(lon, lat), new Coordinate(toLon, toLat)});
+//                } else {
+//                     skip edge for certain zoom
+//                    return;
+//                }
 
                 edgeCounter.incrementAndGet();
                 Map<String, Object> map = new HashMap<>(2);
